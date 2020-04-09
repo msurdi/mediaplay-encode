@@ -4,7 +4,7 @@ const packageJson = require("./package.json");
 const logger = require("./services/logger");
 const encodeDomain = require("./domain/encode");
 
-const defaultDir = process.cwd();
+const defaultPaths = [process.cwd()];
 
 const defaultExtensions = [
   "f4v",
@@ -50,6 +50,6 @@ program
   )
   .parse(process.argv);
 
-const scanPaths = program.args.length ? program.args : defaultDir;
+const scanPaths = program.args.length ? program.args : defaultPaths;
 
 encodeDomain.run(scanPaths, program.opts()).catch(logger.error);
