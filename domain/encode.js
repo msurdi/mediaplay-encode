@@ -6,7 +6,14 @@ const { sleep } = require("../utils/time");
 
 const run = async (
   scanPaths,
-  { extensions, excludePattern, loopInterval, encodedSuffix, preview }
+  {
+    extensions,
+    excludePattern,
+    loopInterval,
+    encodedSuffix,
+    preview,
+    deleteSource,
+  }
 ) => {
   const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
 
@@ -48,7 +55,24 @@ const run = async (
 
   const processFile = async (sourcePath) => {
     const targetPath = getTargetPathForSourcePath(sourcePath);
-    await encodeService.encode(sourcePath, targetPath, { preview });
+    logger.info(`Encoding ${sourcePath}`);
+    try {
+      await encodeService.encode(sourcePath, targetPath, { preview });
+    } catch (e) {
+      logger.error(e);
+      logger.error(
+        `Error encoding ${sourcePath}. Removing failed target file ${targetPath}`
+      );
+      await filesService.rm(targetPath);
+      return;
+    }
+
+    logger.info(`Encoding of ${sourcePath} completed`);
+
+    if (deleteSource) {
+      logger.info(`Removing ${sourcePath}`);
+      await filesService.rm(sourcePath);
+    }
   };
 
   // eslint-disable-next-line no-constant-condition
@@ -59,13 +83,10 @@ const run = async (
     });
 
     if (nextFile) {
-      logger.info(`Encoding ${nextFile}`);
       await processFile(nextFile, { encodedSuffix });
-      logger.info(`Encoding of ${nextFile} completed`);
     } else if (loopInterval) {
       await sleep(loopInterval);
     } else {
-      logger.info("No more files to encode");
       break;
     }
   }

@@ -1,6 +1,5 @@
 const ffmpegPath = require("ffmpeg-static");
 const ffmpeg = require("fluent-ffmpeg");
-const logger = require("./logger");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 

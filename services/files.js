@@ -1,4 +1,5 @@
 const walkdir = require("walkdir");
+const fs = require("fs-extra");
 
 const isNotHidden = (filePath) => !filePath.startsWith(".");
 
@@ -20,6 +21,9 @@ const filesService = {
     return fileMapToList(fileMap)
       .filter((file) => !file.isDirectory)
       .map((file) => file.path);
+  },
+  rm: async (filePath) => {
+    await fs.remove(filePath);
   },
 };
 
