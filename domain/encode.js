@@ -6,7 +6,7 @@ const { sleep } = require("../utils/time");
 
 const run = async (
   scanPaths,
-  { extensions, excludePattern, loopInterval, encodedSuffix }
+  { extensions, excludePattern, loopInterval, encodedSuffix, preview }
 ) => {
   const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
 
@@ -23,20 +23,24 @@ const run = async (
     const isEncodeable = (filePath) =>
       extensions.includes(fileExtension(filePath));
 
-    const isNotExcluded = (filePath) => !filePath.match(excludePattern);
-
-    const isNotAlreadyEncoded = (filePath) =>
-      !filesService.exists(getTargetPathForSourcePath(filePath));
+    const matchesExclusionPattern = (filePath) =>
+      filePath.match(excludePattern);
+    const doesNotMatchExclusionPattern = (filePath) =>
+      !matchesExclusionPattern(filePath);
 
     const allFilesByScanPath = await Promise.all(
       scanPaths.map((scanPath) => filesService.findFiles(scanPath))
     );
 
     const allFiles = allFilesByScanPath.flat();
+    const alreadyEncodedFiles = allFiles.filter(matchesExclusionPattern);
+
+    const isNotAlreadyEncoded = (filePath) =>
+      !alreadyEncodedFiles.includes(getTargetPathForSourcePath(filePath));
 
     const filesToEncode = allFiles
       .filter(isEncodeable)
-      .filter(isNotExcluded)
+      .filter(doesNotMatchExclusionPattern)
       .filter(isNotAlreadyEncoded);
 
     return filesToEncode.length ? filesToEncode[0] : null;
@@ -44,7 +48,7 @@ const run = async (
 
   const processFile = async (sourcePath) => {
     const targetPath = getTargetPathForSourcePath(sourcePath);
-    await encodeService.encode(sourcePath, targetPath);
+    await encodeService.encode(sourcePath, targetPath, { preview });
   };
 
   // eslint-disable-next-line no-constant-condition

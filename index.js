@@ -32,6 +32,7 @@ program
     "Permanently removes source file after encoding",
     false
   )
+  .option("-p, --preview", "Encode only 10s, for previewing the result", false)
   .option(
     "-t, --move-source <sourceDir>",
     "Move source file to <sourceDir> after encoding"
