@@ -36,7 +36,7 @@ program
   .option(
     "-e, --extensions [extension...]",
     "Comma separated list of extensions to encode from",
-    defaultExtensions
+    defaultExtensions.join(",")
   )
   .option(
     "-x, --exclude-pattern <excludePattern>",
