@@ -18,6 +18,9 @@
   },
   "dependencies": {
     "commander": "^5.0.0",
+    "ffmpeg-static": "^4.1.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "fs-extra": "^9.0.0",
     "walkdir": "^0.4.1",
     "winston": "^3.2.1"
   }

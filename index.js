@@ -1,5 +1,4 @@
 const { program } = require("commander");
-const path = require("path");
 const packageJson = require("./package.json");
 const logger = require("./services/logger");
 const encodeDomain = require("./domain/encode");
@@ -28,6 +27,15 @@ program
   .storeOptionsAsProperties(false)
   .version(packageJson.version)
   .arguments("[paths...]")
+  .option(
+    "-d, --delete-source",
+    "Permanently removes source file after encoding",
+    false
+  )
+  .option(
+    "-t, --move-source <sourceDir>",
+    "Move source file to <sourceDir> after encoding"
+  )
   .option(
     "-e, --extensions [extension...]",
     "Comma separated list of extensions to encode from",
