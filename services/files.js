@@ -5,6 +5,7 @@ const fileMapToList = (fileMap) =>
   Object.keys(fileMap).map((filePath) => ({
     path: filePath,
     isDirectory: fileMap[filePath].isDirectory(),
+    createdAt: fileMap[filePath].ctime,
   }));
 
 const filesService = {
@@ -16,9 +17,8 @@ const filesService = {
       filter: (directory, files) => (directory.startsWith(".") ? [] : files),
     });
 
-    return fileMapToList(fileMap)
-      .filter((file) => !file.isDirectory)
-      .map((file) => file.path);
+    return fileMapToList(fileMap).filter((file) => !file.isDirectory);
+    // .map((file) => file.path);
   },
 
   rm: async (filePath) => fs.remove(filePath),

@@ -7,6 +7,6 @@ TODO
 -----
 
 - [ ] encode in a work directory
-- [ ] Encoding order/priority
+- [x] Encoding order/priority
 - [x] Encode to temp file name
 - [x] keep track of failed files to avoid retrying

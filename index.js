@@ -14,7 +14,7 @@ const defaultExtensions = [
   "mkv",
   "mp4",
   "m4v",
-  "wmv",  
+  "wmv",
   "mpeg",
   "asf",
   "divx",
@@ -33,6 +33,11 @@ program
     false
   )
   .option("-p, --preview", "Encode only 10s, for previewing the result", false)
+  .option(
+    "-r, --reverse-order",
+    "Prioritize encoding newer (by creation time) files",
+    false
+  )
   .option(
     "-e, --extensions [extension...]",
     "Comma separated list of extensions to encode from",
@@ -57,4 +62,4 @@ program
 
 const scanPaths = program.args.length ? program.args : defaultPaths;
 
-encodeDomain.run(scanPaths, program.opts()).catch(logger.error);
+encodeDomain.run(scanPaths, program.opts());

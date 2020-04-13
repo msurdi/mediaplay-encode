@@ -13,6 +13,7 @@ const run = async (
     encodedSuffix,
     preview,
     deleteSource,
+    reverseOrder,
   }
 ) => {
   const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
@@ -54,29 +55,35 @@ const run = async (
       scanPaths.map((scanPath) => filesService.findFiles(scanPath))
     );
 
-    const allFiles = allFilesByScanPath.flat();
-    const alreadyEncodedFiles = allFiles.filter(matchesExclusionPattern);
+    const filePriority = (file1, file2) => {
+      return new Date(file1.createdAt) - new Date(file2.createdAt);
+    };
 
-    const filesToEncode = allFiles
+    const allFiles = allFilesByScanPath.flat().sort(filePriority);
+    const allPaths = allFiles.map((file) => file.path);
+    const alreadyEncodedPaths = allPaths.filter(matchesExclusionPattern);
+
+    const filesToEncode = allPaths
       .filter(isNotHidden)
       .filter(isEncodeable)
       .filter(doesNotMatchExclusionPattern)
       .filter(
-        (f) => !alreadyEncodedFiles.includes(getTargetPathForSourcePath(f))
+        (f) => !alreadyEncodedPaths.includes(getTargetPathForSourcePath(f))
       )
       .filter(
         (f) =>
-          !allFiles.includes(
+          !allPaths.includes(
             getWorkInProgressPathForTargetPath(getTargetPathForSourcePath(f))
           )
       )
       .filter(
         (f) =>
-          !allFiles.includes(
+          !allPaths.includes(
             getFailedPathForTargetPath(getTargetPathForSourcePath(f))
           )
       );
-    return filesToEncode.length ? filesToEncode[0] : null;
+
+    return reverseOrder ? filesToEncode.pop() : filesToEncode.shift();
   };
 
   const processFile = async (sourcePath) => {
