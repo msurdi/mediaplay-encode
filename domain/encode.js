@@ -26,12 +26,27 @@ const run = async (
     return targetPath;
   };
 
+  const getFailedPathForTargetPath = (targetPath) => {
+    const targetDir = path.dirname(targetPath);
+    const targetFileName = path.basename(targetPath);
+    return path.join(targetDir, `${targetFileName}.failed`);
+  };
+
+  const getWorkInProgressPathForTargetPath = (targetPath) => {
+    const targetDir = path.dirname(targetPath);
+    const targetFileName = path.basename(targetPath);
+    return path.join(targetDir, `.${targetFileName}.tmp`);
+  };
+
   const findNextFile = async () => {
+    const isNotHidden = (filePath) => !filePath.startsWith(".");
+
     const isEncodeable = (filePath) =>
       extensions.includes(fileExtension(filePath));
 
     const matchesExclusionPattern = (filePath) =>
       filePath.match(excludePattern);
+
     const doesNotMatchExclusionPattern = (filePath) =>
       !matchesExclusionPattern(filePath);
 
@@ -42,22 +57,32 @@ const run = async (
     const allFiles = allFilesByScanPath.flat();
     const alreadyEncodedFiles = allFiles.filter(matchesExclusionPattern);
 
-    const isNotAlreadyEncoded = (filePath) =>
-      !alreadyEncodedFiles.includes(getTargetPathForSourcePath(filePath));
-
     const filesToEncode = allFiles
+      .filter(isNotHidden)
       .filter(isEncodeable)
       .filter(doesNotMatchExclusionPattern)
-      .filter(isNotAlreadyEncoded);
-
+      .filter(
+        (f) => !alreadyEncodedFiles.includes(getTargetPathForSourcePath(f))
+      )
+      .filter(
+        (f) =>
+          !allFiles.includes(
+            getWorkInProgressPathForTargetPath(getTargetPathForSourcePath(f))
+          )
+      )
+      .filter(
+        (f) =>
+          !allFiles.includes(
+            getFailedPathForTargetPath(getTargetPathForSourcePath(f))
+          )
+      );
     return filesToEncode.length ? filesToEncode[0] : null;
   };
 
   const processFile = async (sourcePath) => {
     const targetPath = getTargetPathForSourcePath(sourcePath);
-    const targetDir = path.dirname(targetPath);
-    const targetFileName = path.basename(targetPath);
-    const workInProgressPath = path.join(targetDir, `.${targetFileName}.tmp`);
+    const workInProgressPath = getWorkInProgressPathForTargetPath(targetPath);
+    const failedPath = getFailedPathForTargetPath(targetPath);
 
     logger.info(`Encoding ${sourcePath}`);
     try {
@@ -68,8 +93,8 @@ const run = async (
       logger.error(
         `Error encoding ${sourcePath}. Removing failed target file ${targetPath}`
       );
-      await filesService.rm(workInProgressPath);
-      return;
+      await filesService.mv(workInProgressPath, failedPath);
+      throw e;
     }
 
     logger.info(`Encoding of ${sourcePath} completed`);
