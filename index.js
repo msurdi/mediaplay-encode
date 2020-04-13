@@ -14,7 +14,7 @@ const defaultExtensions = [
   "mkv",
   "mp4",
   "m4v",
-  "wmv",
+  "wmv",  
   "mpeg",
   "asf",
   "divx",

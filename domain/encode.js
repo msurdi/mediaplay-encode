@@ -55,15 +55,20 @@ const run = async (
 
   const processFile = async (sourcePath) => {
     const targetPath = getTargetPathForSourcePath(sourcePath);
+    const targetDir = path.dirname(targetPath);
+    const targetFileName = path.basename(targetPath);
+    const workInProgressPath = path.join(targetDir, `.${targetFileName}.tmp`);
+
     logger.info(`Encoding ${sourcePath}`);
     try {
-      await encodeService.encode(sourcePath, targetPath, { preview });
+      await encodeService.encode(sourcePath, workInProgressPath, { preview });
+      await filesService.mv(workInProgressPath, targetPath);
     } catch (e) {
       logger.error(e);
       logger.error(
         `Error encoding ${sourcePath}. Removing failed target file ${targetPath}`
       );
-      await filesService.rm(targetPath);
+      await filesService.rm(workInProgressPath);
       return;
     }
 

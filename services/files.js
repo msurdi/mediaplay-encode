@@ -22,8 +22,13 @@ const filesService = {
       .filter((file) => !file.isDirectory)
       .map((file) => file.path);
   },
+
   rm: async (filePath) => {
     await fs.remove(filePath);
+  },
+
+  mv: async (sourcePath, targetPath) => {
+    await fs.move(sourcePath, targetPath);
   },
 };
 
