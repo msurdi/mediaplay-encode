@@ -97,7 +97,7 @@ const run = async (
       await filesService.mv(workInProgressPath, targetPath);
     } catch (e) {
       logger.error(
-        `Error encoding ${sourcePath}. Removing failed target file ${targetPath}`
+        `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
       );
       await filesService.mv(workInProgressPath, failedPath);
       throw e;
