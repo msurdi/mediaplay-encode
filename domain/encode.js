@@ -42,8 +42,10 @@ const run = async (
   const findNextFile = async () => {
     const isNotHidden = (filePath) => !filePath.startsWith(".");
 
-    const isEncodeable = (filePath) =>
-      extensions.includes(fileExtension(filePath));
+    const isEncodeable = (filePath) => {
+      const extension = fileExtension(filePath);
+      return extension && extensions.includes(extension);
+    };
 
     const matchesExclusionPattern = (filePath) =>
       filePath.match(excludePattern);
