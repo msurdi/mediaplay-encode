@@ -62,4 +62,4 @@ program
 
 const scanPaths = program.args.length ? program.args : defaultPaths;
 
-encodeDomain.run(scanPaths, program.opts());
+encodeDomain.run(scanPaths, program.opts()).catch((e) => logger.error(e));

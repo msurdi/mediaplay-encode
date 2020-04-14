@@ -96,7 +96,6 @@ const run = async (
       await encodeService.encode(sourcePath, workInProgressPath, { preview });
       await filesService.mv(workInProgressPath, targetPath);
     } catch (e) {
-      logger.error(e);
       logger.error(
         `Error encoding ${sourcePath}. Removing failed target file ${targetPath}`
       );
