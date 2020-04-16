@@ -9,7 +9,7 @@ const fileMapToList = (fileMap) =>
   }));
 
 const filesService = {
-  findFiles: async (scanDir, { recurse } = {}) => {
+  findFiles: async (scanDir, recurse = true) => {
     const fileMap = await walkdir.async(scanDir, {
       return_object: true,
       no_recurse: !recurse,

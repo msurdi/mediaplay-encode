@@ -27,6 +27,7 @@ program
   .storeOptionsAsProperties(false)
   .version(packageJson.version)
   .arguments("[paths...]")
+  .option("--debug", "Enable debug output")
   .option(
     "-d, --delete-source",
     "Permanently removes source file after encoding",

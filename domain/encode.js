@@ -1,6 +1,6 @@
 const path = require("path");
 const filesService = require("../services/files");
-const encodeService = require("../services/encode");
+const { EncodingError, encodeService } = require("../services/encode");
 const logger = require("../services/logger");
 const { sleepSeconds } = require("../utils/time");
 
@@ -14,8 +14,12 @@ const run = async (
     preview,
     deleteSource,
     reverseOrder,
+    debug,
   }
 ) => {
+  if (debug) {
+    logger.level = "debug";
+  }
   const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
 
   const getTargetPathForSourcePath = (sourcePath) => {
@@ -39,7 +43,8 @@ const run = async (
     return path.join(targetDir, `.${targetFileName}.tmp`);
   };
 
-  const findNextFile = async () => {
+  const findNextFile = async (exclude = []) => {
+    const isNotExcluded = (filePath) => !exclude.includes(filePath);
     const isNotHidden = (filePath) => !filePath.startsWith(".");
 
     const isEncodeable = (filePath) => {
@@ -65,7 +70,9 @@ const run = async (
     const allPaths = allFiles.map((file) => file.path);
     const alreadyEncodedPaths = allPaths.filter(matchesExclusionPattern);
 
+    logger.debug(`All files ${allPaths.join("\n")}`);
     const filesToEncode = allPaths
+      .filter(isNotExcluded)
       .filter(isNotHidden)
       .filter(isEncodeable)
       .filter(doesNotMatchExclusionPattern)
@@ -84,6 +91,7 @@ const run = async (
             getFailedPathForTargetPath(getTargetPathForSourcePath(f))
           )
       );
+    logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
 
     return reverseOrder ? filesToEncode.pop() : filesToEncode.shift();
   };
@@ -97,12 +105,19 @@ const run = async (
     try {
       await encodeService.encode(sourcePath, workInProgressPath, { preview });
       await filesService.mv(workInProgressPath, targetPath);
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       logger.error(
         `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
       );
-      await filesService.mv(workInProgressPath, failedPath);
-      throw e;
+
+      try {
+        await filesService.mv(workInProgressPath, failedPath);
+      } catch (moveError) {
+        logger.error(`Could not move ${workInProgressPath} to ${failedPath}`);
+      }
+
+      throw error;
     }
 
     logger.info(`Completed encoding of ${sourcePath}`);
@@ -113,16 +128,25 @@ const run = async (
     }
   };
 
+  const failedFiles = [];
+
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const nextFile = await findNextFile(scanPaths, {
-      extensions,
-      excludePattern,
-    });
+    logger.debug(`Finding file to encode at ${scanPaths}`);
+    const nextFile = await findNextFile(failedFiles);
 
     if (nextFile) {
-      await processFile(nextFile, { encodedSuffix });
+      try {
+        await processFile(nextFile, { encodedSuffix });
+      } catch (error) {
+        if (error instanceof EncodingError) {
+          failedFiles.push(nextFile);
+        } else {
+          throw error;
+        }
+      }
     } else if (loopInterval) {
+      logger.debug(`Sleeping for ${loopInterval} until next file search`);
       await sleepSeconds(loopInterval);
     } else {
       break;
