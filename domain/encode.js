@@ -4,8 +4,8 @@ const { EncodingError, encodeService } = require("../services/encode");
 const logger = require("../services/logger");
 const { sleepSeconds } = require("../utils/time");
 const {
-  getFailedPathForTargetPath,
-  getTargetPathForSourcePath,
+  getFailedPathFromTargetPath,
+  getTargetPathFromSourcePath,
   getWorkInProgressPathFromTargetPath,
 } = require("../utils/path");
 
@@ -53,44 +53,43 @@ const run = async (
     const allFiles = allFilesByScanPath.flat().sort(filePriority);
     const allPaths = allFiles.map((file) => file.path);
     const alreadyEncodedPaths = allPaths.filter(matchesExclusionPattern);
+    const isNotAlreadyEncoded = (f) =>
+      !alreadyEncodedPaths.includes(
+        getTargetPathFromSourcePath(f, encodedSuffix)
+      );
+    const isNotAlreadyInProgress = (f) =>
+      !allPaths.includes(
+        getWorkInProgressPathFromTargetPath(
+          getTargetPathFromSourcePath(f, encodedSuffix)
+        )
+      );
 
-    logger.debug(`All files ${allPaths.join("\n")}`);
+    const isNotFailed = (f) =>
+      !allPaths.includes(
+        getFailedPathFromTargetPath(
+          getTargetPathFromSourcePath(f, encodedSuffix)
+        )
+      );
+
     const filesToEncode = allPaths
       .filter(isNotExcluded)
       .filter(isNotHidden)
       .filter(isEncodeable)
       .filter(doesNotMatchExclusionPattern)
-      .filter(
-        (f) =>
-          !alreadyEncodedPaths.includes(
-            getTargetPathForSourcePath(f, encodedSuffix)
-          )
-      )
-      .filter(
-        (f) =>
-          !allPaths.includes(
-            getWorkInProgressPathFromTargetPath(
-              getTargetPathForSourcePath(f, encodedSuffix)
-            )
-          )
-      )
-      .filter(
-        (f) =>
-          !allPaths.includes(
-            getFailedPathForTargetPath(
-              getTargetPathForSourcePath(f, encodedSuffix)
-            )
-          )
-      );
+      .filter(isNotAlreadyEncoded)
+      .filter(isNotAlreadyInProgress)
+      .filter(isNotFailed);
+
+    logger.debug(`All files ${allPaths.join("\n")}`);
     logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
 
     return reverseOrder ? filesToEncode.pop() : filesToEncode.shift();
   };
 
   const processFile = async (sourcePath) => {
-    const targetPath = getTargetPathForSourcePath(sourcePath, encodedSuffix);
+    const targetPath = getTargetPathFromSourcePath(sourcePath, encodedSuffix);
     const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
-    const failedPath = getFailedPathForTargetPath(targetPath);
+    const failedPath = getFailedPathFromTargetPath(targetPath);
 
     logger.info(`Encoding ${sourcePath}`);
     try {

@@ -1,12 +1,12 @@
 const path = require("path");
 
-const getFailedPathForTargetPath = (targetPath) => {
+const getFailedPathFromTargetPath = (targetPath) => {
   const targetDir = path.dirname(targetPath);
   const targetFileName = path.basename(targetPath);
   return path.join(targetDir, `${targetFileName}.failed`);
 };
 
-const getTargetPathForSourcePath = (sourcePath, encodedSuffix) => {
+const getTargetPathFromSourcePath = (sourcePath, encodedSuffix) => {
   const sourceDirectory = path.dirname(sourcePath);
   const sourceExtension = path.extname(sourcePath);
   const sourceName = path.basename(sourcePath, sourceExtension);
@@ -22,7 +22,7 @@ const getWorkInProgressPathFromTargetPath = (targetPath) => {
 };
 
 module.exports = {
-  getFailedPathForTargetPath,
-  getTargetPathForSourcePath,
+  getFailedPathFromTargetPath,
+  getTargetPathFromSourcePath,
   getWorkInProgressPathFromTargetPath,
 };
