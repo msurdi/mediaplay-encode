@@ -4,6 +4,27 @@ const { EncodingError, encodeService } = require("../services/encode");
 const logger = require("../services/logger");
 const { sleepSeconds } = require("../utils/time");
 
+const getFailedPathForTargetPath = (targetPath) => {
+  const targetDir = path.dirname(targetPath);
+  const targetFileName = path.basename(targetPath);
+  return path.join(targetDir, `${targetFileName}.failed`);
+};
+
+const getTargetPathForSourcePath = (sourcePath, encodedSuffix) => {
+  const sourceDirectory = path.dirname(sourcePath);
+  const sourceExtension = path.extname(sourcePath);
+  const sourceName = path.basename(sourcePath, sourceExtension);
+  const targetName = `${sourceName}${encodedSuffix}.mp4`;
+  const targetPath = path.join(sourceDirectory, targetName);
+  return targetPath;
+};
+
+const getWorkInProgressPathFromTargetPath = (targetPath) => {
+  const targetDir = path.dirname(targetPath);
+  const targetFileName = path.basename(targetPath);
+  return path.join(targetDir, `.${targetFileName}.tmp`);
+};
+
 const run = async (
   scanPaths,
   {
@@ -21,27 +42,6 @@ const run = async (
     logger.level = "debug";
   }
   const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
-
-  const getTargetPathForSourcePath = (sourcePath) => {
-    const sourceDirectory = path.dirname(sourcePath);
-    const sourceExtension = path.extname(sourcePath);
-    const sourceName = path.basename(sourcePath, sourceExtension);
-    const targetName = `${sourceName}${encodedSuffix}.mp4`;
-    const targetPath = path.join(sourceDirectory, targetName);
-    return targetPath;
-  };
-
-  const getFailedPathForTargetPath = (targetPath) => {
-    const targetDir = path.dirname(targetPath);
-    const targetFileName = path.basename(targetPath);
-    return path.join(targetDir, `${targetFileName}.failed`);
-  };
-
-  const getWorkInProgressPathForTargetPath = (targetPath) => {
-    const targetDir = path.dirname(targetPath);
-    const targetFileName = path.basename(targetPath);
-    return path.join(targetDir, `.${targetFileName}.tmp`);
-  };
 
   const findNextFile = async (exclude = []) => {
     const isNotExcluded = (filePath) => !exclude.includes(filePath);
@@ -77,18 +77,25 @@ const run = async (
       .filter(isEncodeable)
       .filter(doesNotMatchExclusionPattern)
       .filter(
-        (f) => !alreadyEncodedPaths.includes(getTargetPathForSourcePath(f))
-      )
-      .filter(
         (f) =>
-          !allPaths.includes(
-            getWorkInProgressPathForTargetPath(getTargetPathForSourcePath(f))
+          !alreadyEncodedPaths.includes(
+            getTargetPathForSourcePath(f, encodedSuffix)
           )
       )
       .filter(
         (f) =>
           !allPaths.includes(
-            getFailedPathForTargetPath(getTargetPathForSourcePath(f))
+            getWorkInProgressPathFromTargetPath(
+              getTargetPathForSourcePath(f, encodedSuffix)
+            )
+          )
+      )
+      .filter(
+        (f) =>
+          !allPaths.includes(
+            getFailedPathForTargetPath(
+              getTargetPathForSourcePath(f, encodedSuffix)
+            )
           )
       );
     logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
@@ -97,8 +104,8 @@ const run = async (
   };
 
   const processFile = async (sourcePath) => {
-    const targetPath = getTargetPathForSourcePath(sourcePath);
-    const workInProgressPath = getWorkInProgressPathForTargetPath(targetPath);
+    const targetPath = getTargetPathForSourcePath(sourcePath, encodedSuffix);
+    const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
     const failedPath = getFailedPathForTargetPath(targetPath);
 
     logger.info(`Encoding ${sourcePath}`);
@@ -114,7 +121,9 @@ const run = async (
       try {
         await filesService.mv(workInProgressPath, failedPath);
       } catch (moveError) {
-        logger.error(`Could not move ${workInProgressPath} to ${failedPath}`);
+        logger.error(
+          `Could not move ${workInProgressPath} to ${failedPath}: ${moveError}`
+        );
       }
 
       throw error;
