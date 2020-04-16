@@ -2,7 +2,7 @@ const path = require("path");
 const filesService = require("../services/files");
 const encodeService = require("../services/encode");
 const logger = require("../services/logger");
-const { sleep } = require("../utils/time");
+const { sleepSeconds } = require("../utils/time");
 
 const run = async (
   scanPaths,
@@ -105,7 +105,7 @@ const run = async (
       throw e;
     }
 
-    logger.info(`Encoding of ${sourcePath} completed`);
+    logger.info(`Completed encoding of ${sourcePath}`);
 
     if (deleteSource) {
       logger.info(`Removing ${sourcePath}`);
@@ -123,7 +123,7 @@ const run = async (
     if (nextFile) {
       await processFile(nextFile, { encodedSuffix });
     } else if (loopInterval) {
-      await sleep(loopInterval);
+      await sleepSeconds(loopInterval);
     } else {
       break;
     }
