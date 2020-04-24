@@ -47,7 +47,7 @@ const run = async (
     );
 
     const filePriority = (file1, file2) => {
-      return new Date(file1.createdAt) - new Date(file2.createdAt);
+      return new Date(file1.modifiedAt) - new Date(file2.modifiedAt);
     };
 
     const allFiles = allFilesByScanPath.flat().sort(filePriority);

@@ -5,7 +5,7 @@ const fileMapToList = (fileMap) =>
   Object.keys(fileMap).map((filePath) => ({
     path: filePath,
     isDirectory: fileMap[filePath].isDirectory(),
-    createdAt: fileMap[filePath].ctime,
+    modifiedAt: fileMap[filePath].mtime,
   }));
 
 const filesService = {
