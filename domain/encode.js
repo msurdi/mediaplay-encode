@@ -20,6 +20,7 @@ const run = async (
     deleteSource,
     reverseOrder,
     debug,
+    highQuality,
   }
 ) => {
   if (debug) {
@@ -93,7 +94,10 @@ const run = async (
 
     logger.info(`Encoding ${sourcePath}`);
     try {
-      await encodeService.encode(sourcePath, workInProgressPath, { preview });
+      await encodeService.encode(sourcePath, workInProgressPath, {
+        preview,
+        highQuality,
+      });
       await filesService.mv(workInProgressPath, targetPath);
     } catch (error) {
       logger.error(error);
@@ -124,7 +128,7 @@ const run = async (
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    logger.debug(`Finding file to encode at ${scanPaths}`);
+    logger.debug(`Finding files to encode at ${scanPaths}`);
     const nextFile = await findNextFile(failedFiles);
 
     if (nextFile) {

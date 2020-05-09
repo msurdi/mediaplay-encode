@@ -10,19 +10,12 @@ class EncodingError extends Error {
   }
 }
 
-const runFfmpeg = (sourcePath, targetPath, { preview }) =>
+const runFfmpeg = (sourcePath, targetPath, { preview, highQuality }) =>
   new Promise((resolve, reject) => {
     const command = ffmpeg(sourcePath, { niceness: 20 })
       .format("mp4")
-      .videoCodec("libx264")
-      .videoFilter("scale='min(1280,iw)':'-2'")
+      .videoCodec("libx265")
       .audioCodec("aac")
-      .addOutputOptions([
-        "-movflags +faststart",
-        "-max_muxing_queue_size 2048",
-        "-maxrate 6M",
-        "-crf 19",
-      ])
       .on("start", (commandLine) => {
         logger.debug(`Running ffmpeg command ${commandLine}`);
       })
@@ -38,14 +31,38 @@ const runFfmpeg = (sourcePath, targetPath, { preview }) =>
     if (preview) {
       command.duration(10);
     }
+
+    if (highQuality) {
+      command
+        .videoFilter("scale='min(5120,iw)':'-2'")
+        .addOutputOptions([
+          "-preset fast",
+          "-movflags +faststart",
+          "-max_muxing_queue_size 2048",
+          "-maxrate 50M",
+          "-bufsize 25M",
+          "-pix_fmt yuv420p",
+          "-crf 18",
+        ]);
+    } else {
+      command
+        .videoFilter("scale='min(1280,iw)':'-2'")
+        .addOutputOptions([
+          "-preset fast",
+          "-movflags +faststart",
+          "-max_muxing_queue_size 2048",
+          "-maxrate 6M",
+          "-crf 19",
+        ]);
+    }
     command.save(targetPath);
   });
 
 const encodeService = {
   // TODO: ensure source exists
   // TODO: ensure target does not exist
-  encode: async (sourcePath, targetPath, { preview }) => {
-    await runFfmpeg(sourcePath, targetPath, { preview });
+  encode: async (sourcePath, targetPath, { preview, highQuality }) => {
+    await runFfmpeg(sourcePath, targetPath, { preview, highQuality });
   },
 };
 

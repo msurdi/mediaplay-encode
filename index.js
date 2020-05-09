@@ -27,6 +27,11 @@ program
   .storeOptionsAsProperties(false)
   .version(packageJson.version)
   .arguments("[paths...]")
+  .option(
+    "-i, --high-quality",
+    "Sacrifice cpu and/or disk space to get better quality",
+    false
+  )
   .option("--debug", "Enable debug output")
   .option(
     "-d, --delete-source",
