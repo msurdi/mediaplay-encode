@@ -10,11 +10,10 @@ class EncodingError extends Error {
   }
 }
 
-const runFfmpeg = (sourcePath, targetPath, { preview, highQuality }) =>
+const runFfmpeg = (sourcePath, targetPath, { preview, highQuality, h265 }) =>
   new Promise((resolve, reject) => {
     const command = ffmpeg(sourcePath, { niceness: 20 })
       .format("mp4")
-      .videoCodec("libx264")
       .audioCodec("aac")
       .on("start", (commandLine) => {
         logger.debug(`Running ffmpeg command ${commandLine}`);
@@ -27,6 +26,12 @@ const runFfmpeg = (sourcePath, targetPath, { preview, highQuality }) =>
         logger.debug(stderr);
         resolve();
       });
+
+    if (h265) {
+      command.videoCodec("libx265");
+    } else {
+      command.videoCodec("libx264");
+    }
 
     if (preview) {
       command.duration(10);
@@ -61,8 +66,8 @@ const runFfmpeg = (sourcePath, targetPath, { preview, highQuality }) =>
 const encodeService = {
   // TODO: ensure source exists
   // TODO: ensure target does not exist
-  encode: async (sourcePath, targetPath, { preview, highQuality }) => {
-    await runFfmpeg(sourcePath, targetPath, { preview, highQuality });
+  encode: async (sourcePath, targetPath, { preview, highQuality, h265 }) => {
+    await runFfmpeg(sourcePath, targetPath, { preview, highQuality, h265 });
   },
 };
 

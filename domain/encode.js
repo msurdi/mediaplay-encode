@@ -21,6 +21,7 @@ const run = async (
     reverseOrder,
     debug,
     highQuality,
+    h265,
   }
 ) => {
   if (debug) {
@@ -97,6 +98,7 @@ const run = async (
       await encodeService.encode(sourcePath, workInProgressPath, {
         preview,
         highQuality,
+        h265,
       });
       await filesService.mv(workInProgressPath, targetPath);
     } catch (error) {
