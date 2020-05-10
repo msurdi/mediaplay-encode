@@ -14,7 +14,7 @@ const runFfmpeg = (sourcePath, targetPath, { preview, highQuality }) =>
   new Promise((resolve, reject) => {
     const command = ffmpeg(sourcePath, { niceness: 20 })
       .format("mp4")
-      .videoCodec("libx265")
+      .videoCodec("libx264")
       .audioCodec("aac")
       .on("start", (commandLine) => {
         logger.debug(`Running ffmpeg command ${commandLine}`);
