@@ -1,5 +1,8 @@
 const walkdir = require("walkdir");
 const fs = require("fs-extra");
+const path = require("path");
+
+const isNotHidden = (filePath) => !filePath.startsWith(".");
 
 const fileMapToList = (fileMap) =>
   Object.keys(fileMap).map((filePath) => ({
@@ -14,11 +17,14 @@ const filesService = {
       return_object: true,
       no_recurse: !recurse,
       find_links: false,
-      filter: (directory, files) => (directory.startsWith(".") ? [] : files),
+      filter: (directoryPath, fileNames) => {
+        const directoryName = path.basename(directoryPath);
+        const nonHiddenFiles = fileNames.filter(isNotHidden);
+        return directoryName.startsWith(".") ? [] : nonHiddenFiles;
+      },
     });
 
     return fileMapToList(fileMap).filter((file) => !file.isDirectory);
-    // .map((file) => file.path);
   },
 
   rm: async (filePath) => fs.remove(filePath),
