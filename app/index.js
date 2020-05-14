@@ -1,6 +1,5 @@
 const { program } = require("commander");
 const packageJson = require("../package.json");
-const logger = require("./services/logger");
 const encodeDomain = require("./domain/encode");
 
 const defaultPaths = [process.cwd()];
@@ -73,7 +72,4 @@ program
 
 const scanPaths = program.args.length ? program.args : defaultPaths;
 
-encodeDomain.run(scanPaths, program.opts()).catch((e) => {
-  logger.error(e);
-  process.exit(1);
-});
+module.exports = async () => encodeDomain.run(scanPaths, program.opts());

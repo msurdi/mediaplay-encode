@@ -1,2 +1,8 @@
 #!/usr/bin/env node
-require("../app");
+const app = require("../app");
+
+app().catch((e) => {
+  // eslint-disable-next-line no-console
+  console.trace(e);
+  process.exit(1);
+});

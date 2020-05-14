@@ -2,9 +2,10 @@ module.exports = {
   env: {
     es6: true,
     node: true,
+    "jest/globals": true,
   },
   extends: ["airbnb-base", "prettier"],
-  plugins: ["prettier"],
+  plugins: ["prettier", "jest"],
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",
@@ -16,5 +17,6 @@ module.exports = {
   rules: {
     "prettier/prettier": "error",
     "no-await-in-loop": 0,
+    "no-restricted-syntax": 0,
   },
 };

@@ -2,9 +2,11 @@
   "name": "mediaplay-encode",
   "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "./app",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "run-s test:integration",
+    "test:integration": "jest tests",
+    "test:integration:watch": "jest --watch tests"
   },
   "bin": {
     "mediaplay-encode": "./bin/mediaplay-encode.js"
@@ -12,18 +14,23 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^25.2.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jest": "^23.11.0",
     "eslint-plugin-prettier": "^3.1.2",
+    "find-root": "^1.1.0",
+    "fs-extra": "^9.0.0",
+    "jest": "^26.0.1",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.0.4"
   },
   "dependencies": {
     "commander": "^5.0.0",
     "ffmpeg-static": "^4.1.0",
     "fluent-ffmpeg": "^2.1.2",
-    "fs-extra": "^9.0.0",
     "walkdir": "^0.4.1",
     "winston": "^3.2.1"
   }
