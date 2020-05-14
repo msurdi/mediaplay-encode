@@ -1,5 +1,5 @@
 const { program } = require("commander");
-const packageJson = require("./package.json");
+const packageJson = require("../package.json");
 const logger = require("./services/logger");
 const encodeDomain = require("./domain/encode");
 
