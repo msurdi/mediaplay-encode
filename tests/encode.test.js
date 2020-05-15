@@ -36,6 +36,53 @@ describe("Mediaplay encode", () => {
     });
   });
 
+  describe("Passing the flag for deleting original files", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("ok/mov_bbb_deleteme.mp4")
+      );
+      result = await cli(["--delete-source", "ok/mov_bbb_deleteme.mp4"]);
+    });
+
+    it("Should delete original file", async () => {
+      expect(await fs.exists(fixturePath("ok/mov_bbb_deleteme.mp4"))).toBe(
+        false
+      );
+    });
+
+    it("Should have generated an encoded file", async () => {
+      expect(await fs.exists(fixturePath("ok/mov_bbb_deleteme.enc.mp4"))).toBe(
+        true
+      );
+    });
+  });
+
+  describe("Passing the flag for deleting original files when encoding fails", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("invalid");
+      await fs.remove(fixturePath("invalid/invalid_deleteme.mp4"));
+      await fs.copyFile(
+        fixturePath("invalid/invalid.mp4"),
+        fixturePath("invalid/invalid_deleteme.mp4")
+      );
+      result = await cli(["--delete-source", "invalid/invalid_deleteme.mp4"]);
+    });
+
+    it("Should keep original file", async () => {
+      expect(await fs.exists(fixturePath("invalid/invalid_deleteme.mp4"))).toBe(
+        true
+      );
+    });
+
+    it("Should have generated a failed file", async () => {
+      expect(
+        await fs.exists(fixturePath("invalid/invalid_deleteme.enc.mp4.failed"))
+      ).toBe(true);
+    });
+  });
+
   describe("Passing a path with already in-progress files to encode", () => {
     beforeAll(async () => {
       result = await cli(["in-progress"]);
