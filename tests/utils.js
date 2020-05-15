@@ -6,11 +6,13 @@ const findRoot = require("find-root");
 
 const projectRoot = findRoot(__dirname);
 
-const fixturesDirPath = path.join(projectRoot, "tests/fixtures");
+const fixtuesRoot = path.join(projectRoot, "tests/fixtures");
 
 const binPath = path.join(projectRoot, "bin", "mediaplay-encode.js");
 
-const cli = (args, cwd = projectRoot) => {
+const fixturePath = (fileName) => path.resolve(fixtuesRoot, fileName);
+
+const cli = (args, cwd = fixturePath(".")) => {
   return new Promise((resolve) => {
     exec(`${binPath} ${args.join(" ")}`, { cwd }, (error, stdout, stderr) => {
       resolve({
@@ -23,18 +25,19 @@ const cli = (args, cwd = projectRoot) => {
   });
 };
 
-const absolutePath = (fileName) => path.resolve(fixturesDirPath, fileName);
-
-const getFixtureFilesPaths = async () => {
-  const fileNames = await fs.readdir(fixturesDirPath);
-  return fileNames.map(absolutePath);
-};
-
-const cleanGeneratedFiles = async () => {
-  const fileNames = await fs.readdir(fixturesDirPath);
+const cleanGeneratedFiles = async (fixtureDir = ".") => {
+  const cleanTargetDir = fixturePath(fixtureDir);
+  const fileNames = await fs.readdir(cleanTargetDir);
   const filesToDelete = fileNames
-    .filter((fileName) => fileName.includes(".enc"))
-    .map(absolutePath);
+    .filter(
+      (fileName) =>
+        fileName.includes(".enc") ||
+        fileName.includes(".tmp") ||
+        fileName.includes(".failed")
+    )
+    .map((fileName) => path.join(fixtureDir, fileName))
+    .map(fixturePath);
+
   for (const fileToDelete of filesToDelete) {
     await fs.remove(fileToDelete);
   }
@@ -42,7 +45,6 @@ const cleanGeneratedFiles = async () => {
 
 module.exports = {
   cli,
-  fixturesDirPath,
-  getFixtureFilesPaths,
+  fixturePath,
   cleanGeneratedFiles,
 };

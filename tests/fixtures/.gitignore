@@ -1,0 +1,4 @@
+**/*.tmp
+**/*.enc.*
+!in-progress/*.tmp
+!failed/*.failed

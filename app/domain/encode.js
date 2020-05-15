@@ -82,7 +82,6 @@ const run = async (
 
     logger.debug(`All files ${allPaths.join("\n")}`);
     logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
-
     return reverseOrder ? filesToEncode.pop() : filesToEncode.shift();
   };
 
@@ -105,12 +104,18 @@ const run = async (
         `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
       );
 
-      try {
-        await filesService.mv(workInProgressPath, failedPath);
-      } catch (moveError) {
-        logger.error(
-          `Could not move ${workInProgressPath} to ${failedPath}: ${moveError}`
-        );
+      if (await filesService.exists(workInProgressPath)) {
+        try {
+          await filesService.mv(workInProgressPath, failedPath);
+        } catch (moveError) {
+          logger.error(
+            `Could not move ${workInProgressPath} to ${failedPath}: ${moveError}`
+          );
+        }
+      } else {
+        /* Leave a tombstone so that no further attempts to encode this file
+        are made in the future */
+        await filesService.touch(failedPath);
       }
 
       throw error;

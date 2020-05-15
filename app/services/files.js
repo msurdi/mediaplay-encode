@@ -32,6 +32,8 @@ const filesService = {
   mv: async (sourcePath, targetPath) => fs.move(sourcePath, targetPath),
 
   exists: async (filePath) => fs.exists(filePath),
+
+  touch: async (filePath) => fs.writeFile(filePath, ""),
 };
 
 module.exports = filesService;
