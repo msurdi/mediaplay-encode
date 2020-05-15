@@ -10,7 +10,7 @@ class EncodingError extends Error {
   }
 }
 
-const runFfmpeg = (sourcePath, targetPath, { preview, highQuality, h265 }) =>
+const runFFmpeg = (sourcePath, targetPath, { preview, highQuality, h265 }) =>
   new Promise((resolve, reject) => {
     const command = ffmpeg(sourcePath, { niceness: 20 })
       .format("mp4")
@@ -63,12 +63,4 @@ const runFfmpeg = (sourcePath, targetPath, { preview, highQuality, h265 }) =>
     command.save(targetPath);
   });
 
-const encodeService = {
-  // TODO: ensure source exists
-  // TODO: ensure target does not exist
-  encode: async (sourcePath, targetPath, { preview, highQuality, h265 }) => {
-    await runFfmpeg(sourcePath, targetPath, { preview, highQuality, h265 });
-  },
-};
-
-module.exports = { encodeService, EncodingError };
+module.exports = { runFFmpeg, EncodingError };

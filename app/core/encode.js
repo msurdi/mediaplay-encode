@@ -1,6 +1,6 @@
 const path = require("path");
 const filesService = require("../services/files");
-const { EncodingError, encodeService } = require("../services/encode");
+const { EncodingError, runFFmpeg } = require("../services/ffmpeg");
 const logger = require("../services/logger");
 const { sleepSeconds } = require("../utils/time");
 const {
@@ -92,7 +92,7 @@ const run = async (
 
     logger.info(`Encoding ${sourcePath}`);
     try {
-      await encodeService.encode(sourcePath, workInProgressPath, {
+      await runFFmpeg(sourcePath, workInProgressPath, {
         preview,
         highQuality,
         h265,
