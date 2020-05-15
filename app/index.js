@@ -1,6 +1,6 @@
 const { program } = require("commander");
 const packageJson = require("../package.json");
-const encodeDomain = require("./domain/encode");
+const encode = require("./core/encode");
 
 const defaultPaths = [process.cwd()];
 
@@ -72,4 +72,4 @@ program
 
 const scanPaths = program.args.length ? program.args : defaultPaths;
 
-module.exports = async () => encodeDomain.run(scanPaths, program.opts());
+module.exports = async () => encode.run(scanPaths, program.opts());
