@@ -1,3 +1,4 @@
+const fs = require("fs-extra");
 const filesService = require("../services/files");
 const { runFFmpeg } = require("../services/ffmpeg");
 const logger = require("../services/logger");
@@ -23,16 +24,16 @@ module.exports = async (
       highQuality,
       h265,
     });
-    await filesService.mv(workInProgressPath, targetPath);
+    await fs.move(workInProgressPath, targetPath);
   } catch (error) {
     logger.error(error);
     logger.error(
       `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
     );
 
-    if (await filesService.exists(workInProgressPath)) {
+    if (await fs.exists(workInProgressPath)) {
       try {
-        await filesService.mv(workInProgressPath, failedPath);
+        await fs.move(workInProgressPath, failedPath);
       } catch (moveError) {
         logger.error(
           `Could not move ${workInProgressPath} to ${failedPath}: ${moveError}`
@@ -51,6 +52,6 @@ module.exports = async (
 
   if (deleteSource) {
     logger.info(`Removing ${sourcePath}`);
-    await filesService.rm(sourcePath);
+    await fs.remove(sourcePath);
   }
 };

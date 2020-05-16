@@ -31,7 +31,7 @@ module.exports = async ({
     !matchesExclusionPattern(filePath);
 
   const allFilesByScanPath = await Promise.all(
-    scanPaths.map((scanPath) => filesService.findFiles(scanPath))
+    scanPaths.map((scanPath) => filesService.find(scanPath))
   );
 
   const filePriority = (file1, file2) => {
