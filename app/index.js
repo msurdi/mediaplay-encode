@@ -38,7 +38,7 @@ program
   )
   .option("--debug", "Enable debug output")
   .option(
-    "-d, --delete-source",
+    "--delete-source",
     "Permanently removes source file after encoding",
     false
   )
