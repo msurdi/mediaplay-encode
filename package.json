@@ -27,6 +27,7 @@
     "node": ">=14",
     "npm": ">=6"
   },
+  "files": ["app/**", "bin/**"],
   "devDependencies": {
     "@types/jest": "^25.2.2",
     "eslint": "^6.8.0",
