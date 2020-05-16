@@ -1,15 +1,39 @@
 mediaplay-encode
 ================
 
-A command line utility to encode video files into an html5 video friendly format.
+A command line utility to encode video files into an html5 video and SmartTV/DLNA friendly format.
 
-TODO
+Under the hood, it wraps ffmpeg to encode almost any input video format into an opinionated, pre-defined output
+format that should work on most browsers and SmartTVs
+
+Usage
 -----
 
-- [ ] encode in a work directory
-- [ ] Disallow -p and -d options together
-- [ ] Send signal to stop after current file
-- [ ] Log size before/after
-- [x] Encoding order/priority
-- [x] Encode to temp file name
-- [x] keep track of failed files to avoid retrying
+```bash
+Usage: mediaplay-encode [options] [paths...]
+
+Options:
+  -V, --version                           output the version number
+  -5, --h265                              Use H.265 (less supported by browsers) instead of H.264
+                                          (default: false)
+  -i, --high-quality                      Sacrifice cpu and/or disk space to get better quality
+                                          (default: false)
+  --debug                                 Enable debug output
+  --delete-source                         Permanently removes source file after encoding (default:
+                                          false)
+  -p, --preview                           Encode only 10s, for previewing the result (default:
+                                          false)
+  -r, --reverse-order                     Prioritize encoding newer (by creation time) files
+                                          (default: false)
+  -e, --extensions [extension...]         Comma separated list of extensions to encode from
+                                          (default:
+                                          "f4v,mov,flv,rm,avi,mkv,mp4,m4v,wmv,mpeg,asf,divx,mpg")
+  -x, --exclude-pattern <excludePattern>  Exclude files matching this regular expression (default:
+                                          "\\.enc")
+  -s, --encoded-suffix <suffix>           Add this suffix to the target file name (default: ".enc")
+  -l, --loop-interval <seconds>           When no files are found loop every <seconds> instead of
+                                          terminating (default: 0)
+  -h, --help                              display help for command
+```
+
+Command line options:
