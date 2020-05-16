@@ -4,7 +4,9 @@
   "description": "",
   "main": "./app",
   "scripts": {
-    "test": "run-s test:integration",
+    "test": "run-s test:unit test:integration",
+    "test:unit": "jest app",
+    "test:unit:watch": "jest --watch app",
     "test:integration": "jest tests",
     "test:integration:watch": "jest --watch tests"
   },
