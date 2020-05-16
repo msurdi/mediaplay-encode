@@ -1,13 +1,8 @@
-const path = require("path");
-const filesService = require("../services/files");
-const { EncodingError, runFFmpeg } = require("../services/ffmpeg");
+const { EncodingError } = require("../services/ffmpeg");
 const logger = require("../services/logger");
+const findNextFile = require("./find-next-file");
 const { sleepSeconds } = require("../utils/time");
-const {
-  getFailedPathFromTargetPath,
-  getTargetPathFromSourcePath,
-  getWorkInProgressPathFromTargetPath,
-} = require("../utils/path");
+const processFile = require("./process-file");
 
 const run = async (
   scanPaths,
@@ -27,118 +22,30 @@ const run = async (
   if (debug) {
     logger.level = "debug";
   }
-  const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
-
-  const findNextFile = async (exclude = []) => {
-    const isNotExcluded = (filePath) => !exclude.includes(filePath);
-
-    const isEncodeable = (filePath) => {
-      const extension = fileExtension(filePath);
-      return extension && extensions.includes(extension);
-    };
-
-    const matchesExclusionPattern = (filePath) =>
-      filePath.match(excludePattern);
-
-    const doesNotMatchExclusionPattern = (filePath) =>
-      !matchesExclusionPattern(filePath);
-
-    const allFilesByScanPath = await Promise.all(
-      scanPaths.map((scanPath) => filesService.findFiles(scanPath))
-    );
-
-    const filePriority = (file1, file2) => {
-      return new Date(file1.modifiedAt) - new Date(file2.modifiedAt);
-    };
-
-    const allFiles = allFilesByScanPath.flat().sort(filePriority);
-    const allPaths = allFiles.map((file) => file.path);
-    const alreadyEncodedPaths = allPaths.filter(matchesExclusionPattern);
-    const isNotAlreadyEncoded = (f) =>
-      !alreadyEncodedPaths.includes(
-        getTargetPathFromSourcePath(f, encodedSuffix)
-      );
-    const isNotAlreadyInProgress = (f) =>
-      !allPaths.includes(
-        getWorkInProgressPathFromTargetPath(
-          getTargetPathFromSourcePath(f, encodedSuffix)
-        )
-      );
-
-    const isNotFailed = (f) =>
-      !allPaths.includes(
-        getFailedPathFromTargetPath(
-          getTargetPathFromSourcePath(f, encodedSuffix)
-        )
-      );
-
-    const filesToEncode = allPaths
-      .filter(isNotExcluded)
-      .filter(isEncodeable)
-      .filter(doesNotMatchExclusionPattern)
-      .filter(isNotAlreadyEncoded)
-      .filter(isNotAlreadyInProgress)
-      .filter(isNotFailed);
-
-    logger.debug(`All files ${allPaths.join("\n")}`);
-    logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
-    return reverseOrder ? filesToEncode.pop() : filesToEncode.shift();
-  };
-
-  const processFile = async (sourcePath) => {
-    const targetPath = getTargetPathFromSourcePath(sourcePath, encodedSuffix);
-    const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
-    const failedPath = getFailedPathFromTargetPath(targetPath);
-
-    logger.info(`Encoding ${sourcePath}`);
-    try {
-      await runFFmpeg(sourcePath, workInProgressPath, {
-        preview,
-        highQuality,
-        h265,
-      });
-      await filesService.mv(workInProgressPath, targetPath);
-    } catch (error) {
-      logger.error(error);
-      logger.error(
-        `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
-      );
-
-      if (await filesService.exists(workInProgressPath)) {
-        try {
-          await filesService.mv(workInProgressPath, failedPath);
-        } catch (moveError) {
-          logger.error(
-            `Could not move ${workInProgressPath} to ${failedPath}: ${moveError}`
-          );
-        }
-      } else {
-        /* Leave a tombstone so that no further attempts to encode this file
-        are made in the future */
-        await filesService.touch(failedPath);
-      }
-
-      throw error;
-    }
-
-    logger.info(`Completed encoding of ${sourcePath}`);
-
-    if (deleteSource) {
-      logger.info(`Removing ${sourcePath}`);
-      await filesService.rm(sourcePath);
-    }
-  };
 
   const failedFiles = [];
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
     logger.debug(`Finding files to encode at ${scanPaths}`);
-    const nextFile = await findNextFile(failedFiles);
+    const nextFile = await findNextFile({
+      exclude: failedFiles,
+      excludePattern,
+      scanPaths,
+      encodedSuffix,
+      extensions,
+      reverseOrder,
+    });
 
     if (nextFile) {
       try {
-        await processFile(nextFile, { encodedSuffix });
+        await processFile(nextFile, {
+          encodedSuffix,
+          preview,
+          deleteSource,
+          highQuality,
+          h265,
+        });
       } catch (error) {
         if (error instanceof EncodingError) {
           failedFiles.push(nextFile);
