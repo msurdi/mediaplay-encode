@@ -13,7 +13,21 @@
   "bin": {
     "mediaplay-encode": "./bin/mediaplay-encode.js"
   },
-  "author": "",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  ],
+  "author": {
+    "name": "Matías Surdi",
+    "email": "matias@surdi.net",
+    "url": "https://github.com/msurdi"
+  },
+  "homepage": "https://github.com/msurdi/mediaplay-encode",
+  "bugs": {
+    "url": "https://github.com/msurdi/mediaplay-encode/issues"
+  },
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^25.2.2",
