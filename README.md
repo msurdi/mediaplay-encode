@@ -6,6 +6,13 @@ A command line utility to encode video files into an html5 video and SmartTV/DLN
 Under the hood, it wraps ffmpeg to encode almost any input video format into an opinionated, pre-defined output
 format that should work on most browsers and SmartTVs
 
+Installation
+------------
+
+```bash
+npm i -g mediaplay-encode
+```
+
 Usage
 -----
 
