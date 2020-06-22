@@ -42,5 +42,3 @@ Options:
                                           terminating (default: 0)
   -h, --help                              display help for command
 ```
-
-Command line options:
