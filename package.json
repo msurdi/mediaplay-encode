@@ -1,6 +1,6 @@
 {
   "name": "mediaplay-encode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "./app",
   "scripts": {
@@ -27,7 +27,10 @@
     "node": ">=14",
     "npm": ">=6"
   },
-  "files": ["app/**", "bin/**"],
+  "files": [
+    "app/**",
+    "bin/**"
+  ],
   "devDependencies": {
     "@types/jest": "^25.2.2",
     "eslint": "^6.8.0",
