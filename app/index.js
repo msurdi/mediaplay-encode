@@ -8,6 +8,7 @@ const defaultExtensions = [
   "f4v",
   "mov",
   "flv",
+  "swf",
   "rm",
   "avi",
   "mkv",
