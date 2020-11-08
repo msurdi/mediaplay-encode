@@ -2,6 +2,7 @@ const fs = require("fs-extra");
 const filesService = require("../services/files");
 const { runFFmpeg } = require("../services/ffmpeg");
 const logger = require("../services/logger");
+const size = require("../utils/size");
 
 const {
   getFailedPathFromTargetPath,
@@ -16,6 +17,7 @@ module.exports = async (
   const targetPath = getTargetPathFromSourcePath(sourcePath, encodedSuffix);
   const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
   const failedPath = getFailedPathFromTargetPath(targetPath);
+  const sourceSize = await size(sourcePath);
 
   logger.info(`Encoding ${sourcePath}`);
   try {
@@ -48,7 +50,11 @@ module.exports = async (
     throw error;
   }
 
-  logger.info(`Completed encoding of ${sourcePath}`);
+  const targetSize = await size(targetPath);
+
+  logger.info(
+    `Completed encoding of ${sourcePath}: ${sourceSize} -> ${targetSize}`
+  );
 
   if (deleteSource) {
     logger.info(`Removing ${sourcePath}`);
