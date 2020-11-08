@@ -1,4 +1,5 @@
 const fs = require("fs-extra");
+const { exists } = require("../app/utils/path");
 
 const { cli, fixturePath, cleanGeneratedFiles } = require("./utils");
 
@@ -28,11 +29,11 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should keep original file", async () => {
-      expect(await fs.exists(fixturePath("ok/mov_bbb.mp4"))).toBe(true);
+      expect(await exists(fixturePath("ok/mov_bbb.mp4"))).toBe(true);
     });
 
     it("Should have generated an encoded file", async () => {
-      expect(await fs.exists(fixturePath("ok/mov_bbb.enc.mp4"))).toBe(true);
+      expect(await exists(fixturePath("ok/mov_bbb.enc.mp4"))).toBe(true);
     });
   });
 
@@ -47,13 +48,11 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should delete original file", async () => {
-      expect(await fs.exists(fixturePath("ok/mov_bbb_deleteme.mp4"))).toBe(
-        false
-      );
+      expect(await exists(fixturePath("ok/mov_bbb_deleteme.mp4"))).toBe(false);
     });
 
     it("Should have generated an encoded file", async () => {
-      expect(await fs.exists(fixturePath("ok/mov_bbb_deleteme.enc.mp4"))).toBe(
+      expect(await exists(fixturePath("ok/mov_bbb_deleteme.enc.mp4"))).toBe(
         true
       );
     });
@@ -71,14 +70,14 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should keep original file", async () => {
-      expect(await fs.exists(fixturePath("invalid/invalid_deleteme.mp4"))).toBe(
+      expect(await exists(fixturePath("invalid/invalid_deleteme.mp4"))).toBe(
         true
       );
     });
 
     it("Should have generated a failed file", async () => {
       expect(
-        await fs.exists(fixturePath("invalid/invalid_deleteme.enc.mp4.failed"))
+        await exists(fixturePath("invalid/invalid_deleteme.enc.mp4.failed"))
       ).toBe(true);
     });
   });
@@ -90,7 +89,7 @@ describe("Mediaplay encode", () => {
 
     it("Should have not generated a failure file", async () => {
       expect(
-        await fs.exists(fixturePath("in-progress/in-progress.enc.mp4.failed"))
+        await exists(fixturePath("in-progress/in-progress.enc.mp4.failed"))
       ).toBe(false);
     });
 
@@ -110,20 +109,18 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should keep original file", async () => {
-      expect(await fs.exists(fixturePath("hidden/.dir/mov_bbb.mp4"))).toBe(
-        true
-      );
+      expect(await exists(fixturePath("hidden/.dir/mov_bbb.mp4"))).toBe(true);
     });
 
     it("Should have not generated an encoded file", async () => {
-      expect(await fs.exists(fixturePath("hidden/.dir/mov_bbb.enc.mp4"))).toBe(
+      expect(await exists(fixturePath("hidden/.dir/mov_bbb.enc.mp4"))).toBe(
         false
       );
     });
 
     it("Should have not generated a failure file", async () => {
       expect(
-        await fs.exists(fixturePath("hidden/.dir/mov_bbb.enc.mp4.failed"))
+        await exists(fixturePath("hidden/.dir/mov_bbb.enc.mp4.failed"))
       ).toBe(false);
     });
   });
@@ -135,19 +132,17 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should keep original file", async () => {
-      expect(await fs.exists(fixturePath("invalid/invalid.mp4"))).toBe(true);
+      expect(await exists(fixturePath("invalid/invalid.mp4"))).toBe(true);
     });
 
     it("Should not have generated an encoded files", async () => {
-      expect(await fs.exists(fixturePath("invalid/invalid.enc.mp4"))).toBe(
-        false
-      );
+      expect(await exists(fixturePath("invalid/invalid.enc.mp4"))).toBe(false);
     });
 
     it("Should have generated an invalid encoding file", async () => {
-      expect(
-        await fs.exists(fixturePath("invalid/invalid.enc.mp4.failed"))
-      ).toBe(true);
+      expect(await exists(fixturePath("invalid/invalid.enc.mp4.failed"))).toBe(
+        true
+      );
     });
   });
 });

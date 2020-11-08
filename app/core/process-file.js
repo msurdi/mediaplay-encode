@@ -7,6 +7,7 @@ const {
   getFailedPathFromTargetPath,
   getTargetPathFromSourcePath,
   getWorkInProgressPathFromTargetPath,
+  exists,
 } = require("../utils/path");
 
 module.exports = async (
@@ -31,7 +32,7 @@ module.exports = async (
       `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
     );
 
-    if (await fs.exists(workInProgressPath)) {
+    if (await exists(workInProgressPath)) {
       try {
         await fs.move(workInProgressPath, failedPath);
       } catch (moveError) {
