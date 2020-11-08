@@ -1,4 +1,3 @@
-const { exists } = require("fs-extra");
 const pathUtils = require("./path");
 
 /*

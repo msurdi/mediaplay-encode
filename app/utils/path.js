@@ -1,5 +1,4 @@
 const path = require("path");
-const fs = require("fs-extra");
 
 const getFailedPathFromTargetPath = (targetPath) => {
   const targetDir = path.dirname(targetPath);
