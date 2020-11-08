@@ -1,3 +1,4 @@
+const { exists } = require("fs-extra");
 const pathUtils = require("./path");
 
 /*
@@ -73,6 +74,16 @@ describe("Path utils", () => {
         "test.mp4"
       );
       expect(workInProgressPath).toEqual(".test.mp4.tmp");
+    });
+  });
+
+  describe("exists", () => {
+    it("Returns true when the provided path exists", async () => {
+      expect(await pathUtils.exists(__filename)).toEqual(true);
+    });
+
+    it("Returns false when the provided path does not exist", async () => {
+      expect(await pathUtils.exists(`${__filename}_inexistent`)).toEqual(false);
     });
   });
 });
