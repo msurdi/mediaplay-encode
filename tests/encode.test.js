@@ -1,6 +1,8 @@
 const fs = require("fs-extra");
 const { cli, fixturePath, cleanGeneratedFiles } = require("./utils");
 
+jest.setTimeout(20000);
+
 describe("Mediaplay encode", () => {
   let result;
 
@@ -20,7 +22,24 @@ describe("Mediaplay encode", () => {
     });
   });
 
-  describe("Passing a path with valid files to encode", () => {
+  describe("Encoding a valid path to mp4", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      result = await cli(["--webm", "ok"]);
+    });
+
+    it("Should keep original file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.mp4"))).toBe(true);
+    });
+
+    it("Should have generated an encoded file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc.webm"))).toBe(
+        true
+      );
+    });
+  });
+
+  describe("Encoding a valid path to webm", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("ok");
       result = await cli(["ok"]);

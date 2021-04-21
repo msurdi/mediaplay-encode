@@ -15,8 +15,8 @@ const run = async (
     deleteSource,
     reverseOrder,
     debug,
-    highQuality,
     h265,
+    webm,
   }
 ) => {
   if (debug) {
@@ -25,6 +25,9 @@ const run = async (
 
   const failedFiles = [];
 
+  const econdedExtension = webm ? "webm" : "mp4";
+  const suffixWithExtension = `${encodedSuffix}.${econdedExtension}`;
+
   // eslint-disable-next-line no-constant-condition
   while (true) {
     logger.debug(`Finding files to encode at ${scanPaths}`);
@@ -32,7 +35,7 @@ const run = async (
       exclude: failedFiles,
       excludePattern,
       scanPaths,
-      encodedSuffix,
+      encodedSuffix: suffixWithExtension,
       extensions,
       reverseOrder,
     });
@@ -40,11 +43,11 @@ const run = async (
     if (nextFile) {
       try {
         await processFile(nextFile, {
-          encodedSuffix,
+          encodedSuffix: suffixWithExtension,
           preview,
           deleteSource,
-          highQuality,
           h265,
+          webm,
         });
       } catch (error) {
         if (error instanceof EncodingError) {

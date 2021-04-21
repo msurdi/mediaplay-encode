@@ -10,7 +10,7 @@ const getTargetPathFromSourcePath = (sourcePath, encodedSuffix) => {
   const sourceDirectory = path.dirname(sourcePath);
   const sourceExtension = path.extname(sourcePath);
   const sourceName = path.basename(sourcePath, sourceExtension);
-  const targetName = `${sourceName}${encodedSuffix}.mp4`;
+  const targetName = `${sourceName}${encodedSuffix}`;
   const targetPath = path.join(sourceDirectory, targetName);
   return targetPath;
 };

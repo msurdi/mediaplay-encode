@@ -27,14 +27,10 @@ program
   .storeOptionsAsProperties(false)
   .version(packageJson.version)
   .arguments("[paths...]")
+  .option("-w, --webm", "Use webm format", false)
   .option(
     "-5, --h265",
     "Use H.265 (less supported by browsers) instead of H.264",
-    false
-  )
-  .option(
-    "-i, --high-quality",
-    "Sacrifice cpu and/or disk space to get better quality",
     false
   )
   .option("--debug", "Enable debug output")

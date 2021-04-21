@@ -10,11 +10,9 @@ class EncodingError extends Error {
   }
 }
 
-const runFFmpeg = (sourcePath, targetPath, { preview, highQuality, h265 }) =>
+const runFFmpeg = (sourcePath, targetPath, { preview, h265, webm }) =>
   new Promise((resolve, reject) => {
     const command = ffmpeg(sourcePath, { niceness: 20 })
-      .format("mp4")
-      .audioCodec("aac")
       .on("start", (commandLine) => {
         logger.debug(`Running ffmpeg command ${commandLine}`);
       })
@@ -25,41 +23,38 @@ const runFFmpeg = (sourcePath, targetPath, { preview, highQuality, h265 }) =>
         logger.debug(stdout);
         logger.debug(stderr);
         resolve();
-      });
-
-    if (h265) {
-      command.videoCodec("libx265");
-    } else {
-      command.videoCodec("libx264");
-    }
+      })
+      .videoFilter("scale='min(1280,iw)':'-2'");
 
     if (preview) {
       command.duration(10);
     }
 
-    if (highQuality) {
-      command
-        .videoFilter("scale='min(5120,iw)':'-2'")
-        .addOutputOptions([
-          "-preset fast",
-          "-movflags +faststart",
-          "-max_muxing_queue_size 2048",
-          "-maxrate 50M",
-          "-bufsize 25M",
-          "-pix_fmt yuv420p",
-          "-crf 18",
-        ]);
+    if (webm) {
+      command.format("webm");
+      command.addOutputOptions([
+        "-preset fast",
+        "-movflags +faststart",
+        "-crf 19",
+        "-b:v 0",
+      ]);
     } else {
-      command
-        .videoFilter("scale='min(1280,iw)':'-2'")
-        .addOutputOptions([
-          "-preset fast",
-          "-movflags +faststart",
-          "-max_muxing_queue_size 2048",
-          "-maxrate 6M",
-          "-crf 19",
-        ]);
+      command.format("mp4").audioCodec("aac");
+      if (h265) {
+        command.videoCodec("libx265");
+      } else {
+        command.videoCodec("libx264");
+      }
+
+      command.addOutputOptions([
+        "-preset fast",
+        "-movflags +faststart",
+        "-max_muxing_queue_size 2048",
+        "-maxrate 6M",
+        "-crf 19",
+      ]);
     }
+
     command.save(targetPath);
   });
 

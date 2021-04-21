@@ -31,7 +31,7 @@ describe("Path utils", () => {
     it("Creates a valid target path from a relative source path", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "other/test.mp4",
-        ".enc"
+        ".enc.mp4"
       );
       expect(targetPath).toEqual("other/test.enc.mp4");
     });
@@ -39,17 +39,17 @@ describe("Path utils", () => {
     it("Creates a valid target path from an absolute source path", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "/some/absolute/test.mp4",
-        ".enc"
+        ".enc.webm"
       );
-      expect(targetPath).toEqual("/some/absolute/test.enc.mp4");
+      expect(targetPath).toEqual("/some/absolute/test.enc.webm");
     });
 
     it("Creates a valid target path from a file name", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "test.mp4",
-        ".enc"
+        ".enc.webm"
       );
-      expect(targetPath).toEqual("test.enc.mp4");
+      expect(targetPath).toEqual("test.enc.webm");
     });
   });
 

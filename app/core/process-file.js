@@ -12,7 +12,7 @@ const {
 
 module.exports = async (
   sourcePath,
-  { encodedSuffix, preview, deleteSource, highQuality, h265 }
+  { encodedSuffix, preview, deleteSource, h265, webm }
 ) => {
   const targetPath = getTargetPathFromSourcePath(sourcePath, encodedSuffix);
   const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
@@ -23,8 +23,8 @@ module.exports = async (
   try {
     await runFFmpeg(sourcePath, workInProgressPath, {
       preview,
-      highQuality,
       h265,
+      webm,
     });
     await fs.move(workInProgressPath, targetPath);
   } catch (error) {
