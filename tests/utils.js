@@ -12,8 +12,8 @@ const binPath = path.join(projectRoot, "bin", "mediaplay-encode.js");
 
 const fixturePath = (fileName) => path.resolve(fixtuesRoot, fileName);
 
-const cli = (args, cwd = fixturePath(".")) => {
-  return new Promise((resolve) => {
+const cli = (args, cwd = fixturePath(".")) =>
+  new Promise((resolve) => {
     exec(`${binPath} ${args.join(" ")}`, { cwd }, (error, stdout, stderr) => {
       resolve({
         code: error && error.code ? error.code : 0,
@@ -23,7 +23,6 @@ const cli = (args, cwd = fixturePath(".")) => {
       });
     });
   });
-};
 
 const cleanGeneratedFiles = async (fixtureDir = ".") => {
   const cleanTargetDir = fixturePath(fixtureDir);

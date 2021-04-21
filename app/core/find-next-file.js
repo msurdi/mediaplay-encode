@@ -34,9 +34,8 @@ module.exports = async ({
     scanPaths.map((scanPath) => filesService.find(scanPath))
   );
 
-  const filePriority = (file1, file2) => {
-    return new Date(file1.modifiedAt) - new Date(file2.modifiedAt);
-  };
+  const filePriority = (file1, file2) =>
+    new Date(file1.modifiedAt) - new Date(file2.modifiedAt);
 
   const allFiles = allFilesByScanPath.flat().sort(filePriority);
   const allPaths = allFiles.map((file) => file.path);
