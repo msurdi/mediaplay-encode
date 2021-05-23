@@ -1,5 +1,6 @@
 const ffmpegPath = require("ffmpeg-static");
 const fluentFFmpeg = require("fluent-ffmpeg");
+const tempfile = require("tempfile");
 const logger = require("./logger");
 
 fluentFFmpeg.setFfmpegPath(ffmpegPath);
@@ -10,7 +11,7 @@ class EncodingError extends Error {
   }
 }
 
-const withEventHandling = (command) =>
+const asPromise = (command) =>
   new Promise((resolve, reject) => {
     command
       .on("start", (commandLine) => {
@@ -40,33 +41,46 @@ const withMp4Params = (command) => {
   return command;
 };
 
-const withWebMParams = (command) => {
-  command.format("webm");
-  command.addOutputOptions([
-    "-preset fast",
-    "-movflags +faststart",
-    "-crf 19",
-    "-b:v 0",
-  ]);
+const commonWebmParams = [
+  "-f webm",
+  "-c:v libvpx-vp9",
+  "-b:v 0",
+  "-crf 28",
+  "-movflags +faststart",
+  `-passlogfile ${tempfile()}`,
+];
+
+const withWebMFirstPassParams = (command) => {
+  command.addOutputOptions([...commonWebmParams, "-pass 1", "-f null"]);
   return command;
 };
 
-const runFFmpeg = (sourcePath, targetPath, { preview, webm }) => {
-  const command = fluentFFmpeg(sourcePath, { niceness: 20 }).videoFilter(
-    "scale='min(1280,iw)':'-2'"
-  );
+const withWebMSecondPassParams = (command) => {
+  command.addOutputOptions([...commonWebmParams, "-pass 2", "-c:a libopus"]);
+  return command;
+};
 
-  if (preview) {
-    command.duration(10);
-  }
+const runFFmpeg = async (sourcePath, targetPath, { preview, webm }) => {
+  const getBaseCommand = () => {
+    const command = fluentFFmpeg(sourcePath, { niceness: 20 }).videoFilter(
+      "scale='min(1280,iw)':'-2'"
+    );
+
+    if (preview) {
+      command.duration(10);
+    }
+    return command;
+  };
 
   if (webm) {
-    withWebMParams(command).save(targetPath);
-  } else {
-    withMp4Params(command).save(targetPath);
+    await asPromise(
+      withWebMFirstPassParams(getBaseCommand()).save("/dev/null")
+    );
+    return asPromise(
+      withWebMSecondPassParams(getBaseCommand()).save(targetPath)
+    );
   }
-
-  return withEventHandling(command);
+  return asPromise(withMp4Params(getBaseCommand()).save(targetPath));
 };
 
 module.exports = { runFFmpeg, EncodingError };
