@@ -1,8 +1,8 @@
 const ffmpegPath = require("ffmpeg-static");
-const fluentFfmpeg = require("fluent-ffmpeg");
+const fluentFFmpeg = require("fluent-ffmpeg");
 const logger = require("./logger");
 
-fluentFfmpeg.setFfmpegPath(ffmpegPath);
+fluentFFmpeg.setFfmpegPath(ffmpegPath);
 
 class EncodingError extends Error {
   constructor(stdout, stderr) {
@@ -27,7 +27,7 @@ const asPromise = (command) =>
   });
 
 const runFFmpeg = (sourcePath, targetPath, { preview, webm }) => {
-  const command = fluentFfmpeg(sourcePath, { niceness: 20 }).videoFilter(
+  const command = fluentFFmpeg(sourcePath, { niceness: 20 }).videoFilter(
     "scale='min(1280,iw)':'-2'"
   );
 
