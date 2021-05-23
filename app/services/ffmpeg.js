@@ -1,8 +1,8 @@
 const ffmpegPath = require("ffmpeg-static");
-const ffmpeg = require("fluent-ffmpeg");
+const fluentFfmpeg = require("fluent-ffmpeg");
 const logger = require("./logger");
 
-ffmpeg.setFfmpegPath(ffmpegPath);
+fluentFfmpeg.setFfmpegPath(ffmpegPath);
 
 class EncodingError extends Error {
   constructor(stdout, stderr) {
@@ -10,9 +10,9 @@ class EncodingError extends Error {
   }
 }
 
-const runFFmpeg = (sourcePath, targetPath, { preview, webm }) =>
+const asPromise = (command) =>
   new Promise((resolve, reject) => {
-    const command = ffmpeg(sourcePath, { niceness: 20 })
+    command
       .on("start", (commandLine) => {
         logger.debug(`Running ffmpeg command ${commandLine}`);
       })
@@ -23,35 +23,42 @@ const runFFmpeg = (sourcePath, targetPath, { preview, webm }) =>
         logger.debug(stdout);
         logger.debug(stderr);
         resolve();
-      })
-      .videoFilter("scale='min(1280,iw)':'-2'");
-
-    if (preview) {
-      command.duration(10);
-    }
-
-    if (webm) {
-      command.format("webm");
-      command.addOutputOptions([
-        "-preset fast",
-        "-movflags +faststart",
-        "-crf 19",
-        "-b:v 0",
-      ]);
-    } else {
-      command.format("mp4").audioCodec("aac");
-      command.videoCodec("libx264");
-
-      command.addOutputOptions([
-        "-preset fast",
-        "-movflags +faststart",
-        "-max_muxing_queue_size 2048",
-        "-maxrate 6M",
-        "-crf 19",
-      ]);
-    }
-
-    command.save(targetPath);
+      });
   });
+
+const runFFmpeg = (sourcePath, targetPath, { preview, webm }) => {
+  const command = fluentFfmpeg(sourcePath, { niceness: 20 }).videoFilter(
+    "scale='min(1280,iw)':'-2'"
+  );
+
+  if (preview) {
+    command.duration(10);
+  }
+
+  if (webm) {
+    command.format("webm");
+    command.addOutputOptions([
+      "-preset fast",
+      "-movflags +faststart",
+      "-crf 19",
+      "-b:v 0",
+    ]);
+  } else {
+    command.format("mp4").audioCodec("aac");
+    command.videoCodec("libx264");
+
+    command.addOutputOptions([
+      "-preset fast",
+      "-movflags +faststart",
+      "-max_muxing_queue_size 2048",
+      "-maxrate 6M",
+      "-crf 19",
+    ]);
+  }
+
+  command.save(targetPath);
+
+  return asPromise(command);
+};
 
 module.exports = { runFFmpeg, EncodingError };
