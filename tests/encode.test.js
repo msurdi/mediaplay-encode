@@ -22,7 +22,7 @@ describe("Mediaplay encode", () => {
     });
   });
 
-  describe("Encoding a valid path to mp4", () => {
+  describe("Encoding a valid path to webm", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("ok");
       result = await cli(["--webm", "ok"]);
