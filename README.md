@@ -21,8 +21,6 @@ Usage: mediaplay-encode [options] [paths...]
 
 Options:
   -V, --version                           output the version number
-  -5, --h265                              Use H.265 (less supported by browsers) instead of H.264
-                                          (default: false)
   -i, --high-quality                      Sacrifice cpu and/or disk space to get better quality
                                           (default: false)
   --debug                                 Enable debug output

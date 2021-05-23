@@ -15,7 +15,6 @@ const run = async (
     deleteSource,
     reverseOrder,
     debug,
-    h265,
     webm,
   }
 ) => {
@@ -46,7 +45,6 @@ const run = async (
           encodedSuffix: suffixWithExtension,
           preview,
           deleteSource,
-          h265,
           webm,
         });
       } catch (error) {

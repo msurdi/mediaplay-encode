@@ -10,7 +10,7 @@ class EncodingError extends Error {
   }
 }
 
-const runFFmpeg = (sourcePath, targetPath, { preview, h265, webm }) =>
+const runFFmpeg = (sourcePath, targetPath, { preview, webm }) =>
   new Promise((resolve, reject) => {
     const command = ffmpeg(sourcePath, { niceness: 20 })
       .on("start", (commandLine) => {
@@ -40,11 +40,7 @@ const runFFmpeg = (sourcePath, targetPath, { preview, h265, webm }) =>
       ]);
     } else {
       command.format("mp4").audioCodec("aac");
-      if (h265) {
-        command.videoCodec("libx265");
-      } else {
-        command.videoCodec("libx264");
-      }
+      command.videoCodec("libx264");
 
       command.addOutputOptions([
         "-preset fast",
