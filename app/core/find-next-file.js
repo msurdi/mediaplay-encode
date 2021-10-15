@@ -20,9 +20,13 @@ module.exports = async ({
 }) => {
   const isNotExcluded = (filePath) => !exclude.includes(filePath);
 
+  const caseInsensitiveExtensions = extensions
+    .split(",")
+    .map((extension) => extension.toLowerCase());
+
   const isEncodeable = (filePath) => {
-    const extension = fileExtension(filePath);
-    return extension && extensions.includes(extension);
+    const extension = fileExtension(filePath).toLowerCase();
+    return extension && caseInsensitiveExtensions.includes(extension);
   };
 
   const matchesExclusionPattern = (filePath) => filePath.match(excludePattern);

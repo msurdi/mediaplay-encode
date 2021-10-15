@@ -39,7 +39,7 @@ describe("Mediaplay encode", () => {
     });
   });
 
-  describe("Encoding a valid path to webm", () => {
+  describe("Encoding a valid path to mp4", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("ok");
       result = await cli(["ok"]);
@@ -51,6 +51,21 @@ describe("Mediaplay encode", () => {
 
     it("Should have generated an encoded file", async () => {
       expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc.mp4"))).toBe(true);
+    });
+  });
+
+  describe("Encoding a valid uppercase path to mp4", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("uppercase");
+      result = await cli(["uppercase"]);
+    });
+
+    it("Should keep original file", async () => {
+      expect(await fs.pathExists(fixturePath("uppercase/MOV_BBB.MP4"))).toBe(true);
+    });
+
+    it("Should have generated an encoded file", async () => {
+      expect(await fs.pathExists(fixturePath("uppercase/MOV_BBB.enc.mp4"))).toBe(true);
     });
   });
 
