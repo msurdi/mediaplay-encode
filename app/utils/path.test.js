@@ -55,9 +55,8 @@ describe("Path utils", () => {
 
   describe("Work in progress paths and file names", () => {
     it("Creates a valid temporary path from a relative source path", () => {
-      const workInProgressPath = pathUtils.getWorkInProgressPathFromTargetPath(
-        "other/test.mp4"
-      );
+      const workInProgressPath =
+        pathUtils.getWorkInProgressPathFromTargetPath("other/test.mp4");
       expect(workInProgressPath).toEqual("other/.test.mp4.tmp");
     });
 
@@ -69,9 +68,8 @@ describe("Path utils", () => {
     });
 
     it("Creates a valid work in progress path from a file name", () => {
-      const workInProgressPath = pathUtils.getWorkInProgressPathFromTargetPath(
-        "test.mp4"
-      );
+      const workInProgressPath =
+        pathUtils.getWorkInProgressPathFromTargetPath("test.mp4");
       expect(workInProgressPath).toEqual(".test.mp4.tmp");
     });
   });

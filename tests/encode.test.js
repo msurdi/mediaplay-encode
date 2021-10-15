@@ -61,11 +61,15 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should keep original file", async () => {
-      expect(await fs.pathExists(fixturePath("uppercase/MOV_BBB.MP4"))).toBe(true);
+      expect(await fs.pathExists(fixturePath("uppercase/MOV_BBB.MP4"))).toBe(
+        true
+      );
     });
 
     it("Should have generated an encoded file", async () => {
-      expect(await fs.pathExists(fixturePath("uppercase/MOV_BBB.enc.mp4"))).toBe(true);
+      expect(
+        await fs.pathExists(fixturePath("uppercase/MOV_BBB.enc.mp4"))
+      ).toBe(true);
     });
   });
 
