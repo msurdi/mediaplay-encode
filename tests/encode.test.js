@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const { cli, fixturePath, cleanGeneratedFiles } = require("./utils");
 
-jest.setTimeout(20000);
+jest.setTimeout(40000);
 
 describe("Mediaplay encode", () => {
   let result;
