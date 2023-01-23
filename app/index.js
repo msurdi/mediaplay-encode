@@ -19,6 +19,7 @@ const defaultExtensions = [
   "asf",
   "divx",
   "mpg",
+  "ts",
 ];
 const defaultSuffix = ".enc";
 const defaultExcludePattern = "\\.enc";
