@@ -1,4 +1,4 @@
-const filesize = require("filesize");
+const { filesize } = require("filesize");
 const fs = require("fs-extra");
 
 const size = async (filePath) => {

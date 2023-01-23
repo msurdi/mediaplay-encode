@@ -8,6 +8,6 @@ const TEST_FILE_PATH = path.join(
 
 describe("size", () => {
   it("Returns correct size for a file", async () => {
-    expect(await size(TEST_FILE_PATH)).toEqual("770.01 KB");
+    expect(await size(TEST_FILE_PATH)).toEqual("788.49 kB");
   });
 });
