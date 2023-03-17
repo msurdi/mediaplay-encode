@@ -34,9 +34,8 @@ const withMp4Params = (command) => {
   command.addOutputOptions([
     "-preset fast",
     "-movflags +faststart",
-    "-max_muxing_queue_size 2048",
     "-maxrate 6M",
-    "-crf 19",
+    "-crf 17",
   ]);
   return command;
 };
