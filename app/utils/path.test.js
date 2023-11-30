@@ -1,3 +1,4 @@
+const path = require("path");
 const pathUtils = require("./path");
 
 /*
@@ -25,6 +26,13 @@ describe("Path utils", () => {
       );
       expect(failedPath).toEqual("/some/absolute/test.mp4.failed");
     });
+
+    it("Does not create file names longer than 255 characters", () => {
+      const failedPath = pathUtils.getFailedPathFromTargetPath(
+        path.join("/some/absolute", "test.mp4".repeat(200))
+      );
+      expect(path.basename(failedPath).length).toBeLessThanOrEqual(255);
+    });
   });
 
   describe("Target paths and file names", () => {
@@ -51,6 +59,14 @@ describe("Path utils", () => {
       );
       expect(targetPath).toEqual("test.enc.webm");
     });
+
+    it("Creates a valid target path from a very long file name", () => {
+      const targetPath = pathUtils.getTargetPathFromSourcePath(
+        "test.mp4".repeat(200),
+        ".enc.webm"
+      );
+      expect(path.basename(targetPath).length).toBeLessThanOrEqual(255);
+    });
   });
 
   describe("Work in progress paths and file names", () => {
@@ -71,6 +87,13 @@ describe("Path utils", () => {
       const workInProgressPath =
         pathUtils.getWorkInProgressPathFromTargetPath("test.mp4");
       expect(workInProgressPath).toEqual(".test.mp4.tmp");
+    });
+
+    it("Creates a valid work in progress path from a file name", () => {
+      const workInProgressPath = pathUtils.getWorkInProgressPathFromTargetPath(
+        "test.mp4".repeat(200)
+      );
+      expect(workInProgressPath.length).toBeLessThanOrEqual(255);
     });
   });
 });
