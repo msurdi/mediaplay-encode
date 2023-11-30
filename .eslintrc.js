@@ -15,7 +15,6 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
-    "prettier/prettier": "error",
     "no-await-in-loop": 0,
     "no-restricted-syntax": 0,
   },
