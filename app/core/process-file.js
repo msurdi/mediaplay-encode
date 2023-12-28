@@ -1,4 +1,5 @@
 const fs = require("fs-extra");
+const path = require("path");
 const filesService = require("../services/files");
 const { runFFmpeg } = require("../services/ffmpeg");
 const logger = require("../services/logger");
@@ -12,32 +13,50 @@ const {
 
 module.exports = async (
   sourcePath,
-  { encodedSuffix, preview, deleteSource, webm }
+  { encodedSuffix, preview, deleteSource, webm, workDir }
 ) => {
-  const targetPath = getTargetPathFromSourcePath(sourcePath, encodedSuffix);
-  const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
-  const failedPath = getFailedPathFromTargetPath(targetPath);
-  const sourceSize = await size(sourcePath);
+  const workDirSourcePath = path.join(workDir, path.basename(sourcePath));
 
-  logger.info(`Encoding ${sourcePath}`);
+  if (workDir) {
+    logger.info(`Copying ${sourcePath} to ${workDirSourcePath}`);
+    await fs.copy(sourcePath, workDirSourcePath);
+  }
+
+  const targetPath = getTargetPathFromSourcePath(sourcePath, encodedSuffix);
+  const workDirTargetPath = path.join(workDir, path.basename(targetPath));
+  const workInProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
+  const workDirWorkInProgressPath = path.join(
+    workDir,
+    path.basename(workInProgressPath)
+  );
+  const failedPath = getFailedPathFromTargetPath(targetPath);
+
+  const effectiveSourcePath = workDir ? workDirSourcePath : sourcePath;
+  const effectiveTargetPath = workDir ? workDirTargetPath : targetPath;
+  const effectiveWorkInProgressPath = workDir
+    ? workDirWorkInProgressPath
+    : workInProgressPath;
+
+  const sourceSize = await size(effectiveSourcePath);
+  logger.info(`Encoding ${effectiveSourcePath}`);
   try {
-    await runFFmpeg(sourcePath, workInProgressPath, {
+    await runFFmpeg(effectiveSourcePath, effectiveWorkInProgressPath, {
       preview,
       webm,
     });
-    await fs.move(workInProgressPath, targetPath);
+    await fs.move(effectiveWorkInProgressPath, effectiveTargetPath);
   } catch (error) {
     logger.error(error);
     logger.error(
       `Error encoding ${sourcePath}. Leaving failed encoding target at ${failedPath}`
     );
 
-    if (await fs.pathExists(workInProgressPath)) {
+    if (await fs.pathExists(effectiveWorkInProgressPath)) {
       try {
-        await fs.move(workInProgressPath, failedPath);
+        await fs.move(effectiveWorkInProgressPath, failedPath);
       } catch (moveError) {
         logger.error(
-          `Could not move ${workInProgressPath} to ${failedPath}: ${moveError}`
+          `Could not move ${effectiveWorkInProgressPath} to ${failedPath}: ${moveError}`
         );
       }
     } else {
@@ -49,11 +68,21 @@ module.exports = async (
     throw error;
   }
 
-  const targetSize = await size(targetPath);
+  const targetSize = await size(effectiveTargetPath);
 
   logger.info(
     `Completed encoding of ${sourcePath}: ${sourceSize} -> ${targetSize}`
   );
+
+  if (workDir) {
+    logger.info(`Moving ${effectiveTargetPath} to ${targetPath}`);
+
+    // Move in two steps to keep the file hidden while copying across devices is in progress
+    await fs.move(effectiveTargetPath, workInProgressPath);
+    await fs.move(workInProgressPath, targetPath);
+
+    await fs.rm(workDirSourcePath);
+  }
 
   if (deleteSource) {
     logger.info(`Removing ${sourcePath}`);

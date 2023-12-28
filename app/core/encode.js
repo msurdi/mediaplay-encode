@@ -16,6 +16,7 @@ const run = async (
     reverseOrder,
     debug,
     webm,
+    workDir,
   }
 ) => {
   if (debug) {
@@ -46,6 +47,7 @@ const run = async (
           preview,
           deleteSource,
           webm,
+          workDir,
         });
       } catch (error) {
         if (error instanceof EncodingError) {

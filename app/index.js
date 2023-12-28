@@ -61,6 +61,11 @@ program
     "When no files are found loop every <seconds> instead of terminating",
     0
   )
+  .option(
+    "-d, --work-dir <dir>",
+    "Temporary work directory for encoding process",
+    ""
+  )
   .parse(process.argv);
 
 const scanPaths = program.args.length ? program.args : defaultPaths;

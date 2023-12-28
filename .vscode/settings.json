@@ -1,11 +1,11 @@
 {
-    "files.exclude": {
-        "node_modules": true
-    },
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    },
-    "[json]": {
-        "editor.formatOnSave": true
-    }
+  "files.exclude": {
+    "node_modules": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "[json]": {
+    "editor.formatOnSave": true
+  }
 }
