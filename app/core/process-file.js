@@ -75,12 +75,15 @@ module.exports = async (
   );
 
   if (workDir) {
-    logger.info(`Moving ${effectiveTargetPath} to ${targetPath}`);
+    logger.info(`Moving ${effectiveTargetPath} to ${workInProgressPath}`);
 
     // Move in two steps to keep the file hidden while copying across devices is in progress
     await fs.move(effectiveTargetPath, workInProgressPath);
+
+    logger.info(`Moving ${workInProgressPath} to ${targetPath}`);
     await fs.move(workInProgressPath, targetPath);
 
+    logger.info(`Removing ${workDirSourcePath}`);
     await fs.rm(workDirSourcePath);
   }
 
