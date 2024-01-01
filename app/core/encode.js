@@ -30,7 +30,7 @@ const run = async (
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    logger.debug(`Finding files to encode at ${scanPaths}`);
+    logger.info(`Finding files to encode at ${scanPaths}`);
     const nextFile = await findNextFile({
       exclude: failedFiles,
       excludePattern,
