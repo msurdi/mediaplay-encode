@@ -70,5 +70,23 @@ module.exports = async ({
 
   logger.debug(`All files ${allPaths.join("\n")}`);
   logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
-  return reverseOrder ? filesToEncode.pop() : filesToEncode.shift();
+
+  if (filesToEncode.length === 0) {
+    return null;
+  }
+
+  if (filesToEncode.length === 1) {
+    return filesToEncode[0];
+  }
+
+  // Do not return the first/last elements of the array, to reduce the
+  // possibility it's a file that's currently being written to.
+
+  if (reverseOrder) {
+    const secondToLast = filesToEncode[filesToEncode.length - 2];
+    return secondToLast;
+  }
+  const second = filesToEncode[1];
+
+  return second;
 };
