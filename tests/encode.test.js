@@ -150,6 +150,12 @@ describe("Mediaplay encode", () => {
       ).toBe(false);
     });
 
+    it("should have not encoded the file", async () => {
+      expect(
+        await fs.pathExists(fixturePath("in-progress/in-progress.enc.mp4"))
+      ).toBe(false);
+    });
+
     it("should have not modified the already existing in-progress file", async () => {
       const contents = await fs.readFile(
         fixturePath("in-progress/.in-progress.enc.mp4.tmp"),
