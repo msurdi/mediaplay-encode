@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs-extra");
 const filesService = require("../services/files");
 const logger = require("../services/logger");
 
@@ -43,50 +44,49 @@ module.exports = async ({
 
   const allFiles = allFilesByScanPath.flat().sort(filePriority);
   const allPaths = allFiles.map((file) => file.path);
-  const alreadyEncodedPaths = allPaths.filter(matchesExclusionPattern);
-  const isNotAlreadyEncoded = (f) =>
-    !alreadyEncodedPaths.includes(
-      getTargetPathFromSourcePath(f, encodedSuffix)
-    );
-  const isNotAlreadyInProgress = (f) =>
-    !allPaths.includes(
-      getWorkInProgressPathFromTargetPath(
-        getTargetPathFromSourcePath(f, encodedSuffix)
-      )
-    );
-
-  const isNotFailed = (f) =>
-    !allPaths.includes(
-      getFailedPathFromTargetPath(getTargetPathFromSourcePath(f, encodedSuffix))
-    );
 
   const filesToEncode = allPaths
     .filter(isNotExcluded)
     .filter(isEncodeable)
-    .filter(doesNotMatchExclusionPattern)
-    .filter(isNotAlreadyEncoded)
-    .filter(isNotAlreadyInProgress)
-    .filter(isNotFailed);
+    .filter(doesNotMatchExclusionPattern);
+
+  const candidateFilesToEncode = [];
+  for (const fileToEncode of filesToEncode) {
+    const targetPath = getTargetPathFromSourcePath(fileToEncode, encodedSuffix);
+    const failedPath = getFailedPathFromTargetPath(targetPath);
+    const inProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
+
+    const targetPathExists = await fs.exists(targetPath);
+    const failedPathExists = await fs.exists(failedPath);
+    const inProgressPathExists = await fs.exists(inProgressPath);
+
+    if (
+      ![targetPathExists, failedPathExists, inProgressPathExists].some(Boolean)
+    ) {
+      candidateFilesToEncode.push(fileToEncode);
+    }
+  }
 
   logger.debug(`All files ${allPaths.join("\n")}`);
   logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
 
-  if (filesToEncode.length === 0) {
+  if (candidateFilesToEncode.length === 0) {
     return null;
   }
 
-  if (filesToEncode.length === 1) {
-    return filesToEncode[0];
+  if (candidateFilesToEncode.length === 1) {
+    return candidateFilesToEncode[0];
   }
 
   // Do not return the first/last elements of the array, to reduce the
   // possibility it's a file that's currently being written to.
 
   if (reverseOrder) {
-    const secondToLast = filesToEncode[filesToEncode.length - 2];
+    const secondToLast =
+      candidateFilesToEncode[candidateFilesToEncode.length - 2];
     return secondToLast;
   }
-  const second = filesToEncode[1];
+  const second = candidateFilesToEncode[1];
 
   return second;
 };
