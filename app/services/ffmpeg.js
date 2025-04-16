@@ -36,6 +36,7 @@ const withMp4Params = (command) => {
     "-movflags +faststart",
     "-maxrate 6M",
     "-crf 17",
+    "-map 0",
   ]);
   return command;
 };
@@ -68,6 +69,7 @@ const runFFmpeg = async (sourcePath, targetPath, { preview, webm }) => {
     if (preview) {
       command.duration(10);
     }
+
     return command;
   };
 
