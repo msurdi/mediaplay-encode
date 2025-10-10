@@ -22,7 +22,7 @@ const defaultExtensions = [
   "ts",
 ];
 const defaultSuffix = ".enc";
-const defaultExcludePattern = "\\.enc";
+const defaultExcludePattern = "\\.enc\\.";
 
 program
   .storeOptionsAsProperties(false)
