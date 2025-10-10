@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "commander": "^14.0.1",
-    "filesize": "^10.0.6",
+    "filesize": "^11.0.13",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^11.1.0",
     "walkdir": "^0.4.1",
