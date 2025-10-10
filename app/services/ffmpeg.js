@@ -1,5 +1,4 @@
 const fluentFFmpeg = require("fluent-ffmpeg");
-const tempfile = require("tempfile");
 const { execSync } = require("child_process");
 const logger = require("./logger");
 
@@ -56,26 +55,7 @@ const withMp4Params = (command) => {
   return command;
 };
 
-const commonWebmParams = [
-  "-f webm",
-  "-c:v libvpx-vp9",
-  "-b:v 0",
-  "-crf 28",
-  "-movflags +faststart",
-  `-passlogfile ${tempfile()}`,
-];
-
-const withWebMFirstPassParams = (command) => {
-  command.addOutputOptions([...commonWebmParams, "-pass 1", "-f null"]);
-  return command;
-};
-
-const withWebMSecondPassParams = (command) => {
-  command.addOutputOptions([...commonWebmParams, "-pass 2", "-c:a libopus"]);
-  return command;
-};
-
-const runFFmpeg = async (sourcePath, targetPath, { preview, webm }) => {
+const runFFmpeg = async (sourcePath, targetPath, { preview }) => {
   const getBaseCommand = () => {
     const command = fluentFFmpeg(sourcePath, { niceness: 20 }).videoFilter(
       "scale='min(1280,iw)':'-2'"
@@ -88,14 +68,6 @@ const runFFmpeg = async (sourcePath, targetPath, { preview, webm }) => {
     return command;
   };
 
-  if (webm) {
-    await asPromise(
-      withWebMFirstPassParams(getBaseCommand()).save("/dev/null")
-    );
-    return asPromise(
-      withWebMSecondPassParams(getBaseCommand()).save(targetPath)
-    );
-  }
   return asPromise(withMp4Params(getBaseCommand()).save(targetPath));
 };
 

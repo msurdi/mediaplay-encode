@@ -15,7 +15,6 @@ const run = async (
     deleteSource,
     reverseOrder,
     debug,
-    webm,
     workDir,
   }
 ) => {
@@ -25,7 +24,7 @@ const run = async (
 
   const failedFiles = [];
 
-  const econdedExtension = webm ? "webm" : "mp4";
+  const econdedExtension = "mp4";
   const suffixWithExtension = `${encodedSuffix}.${econdedExtension}`;
 
   // eslint-disable-next-line no-constant-condition
@@ -46,7 +45,6 @@ const run = async (
           encodedSuffix: suffixWithExtension,
           preview,
           deleteSource,
-          webm,
           workDir,
         });
       } catch (error) {

@@ -28,7 +28,6 @@ program
   .storeOptionsAsProperties(false)
   .version(packageJson.version)
   .arguments("[paths...]")
-  .option("-w, --webm", "Use webm format", false)
   .option("--debug", "Enable debug output")
   .option(
     "--delete-source",

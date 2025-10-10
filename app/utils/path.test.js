@@ -47,23 +47,23 @@ describe("Path utils", () => {
     it("Creates a valid target path from an absolute source path", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "/some/absolute/test.mp4",
-        ".enc.webm"
+        ".enc.mp4"
       );
-      expect(targetPath).toEqual("/some/absolute/test.enc.webm");
+      expect(targetPath).toEqual("/some/absolute/test.enc.mp4");
     });
 
     it("Creates a valid target path from a file name", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "test.mp4",
-        ".enc.webm"
+        ".enc.mp4"
       );
-      expect(targetPath).toEqual("test.enc.webm");
+      expect(targetPath).toEqual("test.enc.mp4");
     });
 
     it("Creates a valid target path from a very long file name", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "test.mp4".repeat(200),
-        ".enc.webm"
+        ".enc.mp4"
       );
       expect(path.basename(targetPath).length).toBeLessThanOrEqual(255);
     });
