@@ -43,13 +43,13 @@ const asPromise = (command) =>
 
 const withMp4Params = (command) => {
   command.format("mp4").audioCodec("aac");
-  command.videoCodec("libx264");
+  command.videoCodec("libsvtav1");
 
   command.addOutputOptions([
-    "-preset fast",
+    "-crf 30",
+    "-preset 6",
+    "-b:a 128k",
     "-movflags +faststart",
-    "-maxrate 6M",
-    "-crf 17",
     "-map 0",
   ]);
   return command;
