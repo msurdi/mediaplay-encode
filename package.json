@@ -12,7 +12,7 @@
     "test:integration:watch": "jest --watch tests"
   },
   "bin": {
-    "mediaplay-encode": "./bin/mediaplay-encode.js"
+    "mediaplay-encode": "bin/mediaplay-encode.js"
   },
   "author": {
     "name": "Matías Surdi",
