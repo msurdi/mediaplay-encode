@@ -1,17 +1,13 @@
 module.exports = {
   env: {
-    es6: true,
+    es2022: true,
     node: true,
     "jest/globals": true,
   },
   extends: ["airbnb-base", "prettier"],
   plugins: ["prettier", "jest"],
-  globals: {
-    Atomics: "readonly",
-    SharedArrayBuffer: "readonly",
-  },
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2022,
     sourceType: "module",
   },
   rules: {
