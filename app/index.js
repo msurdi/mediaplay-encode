@@ -21,8 +21,8 @@ const defaultExtensions = [
   "mpg",
   "ts",
 ];
-const defaultSuffix = ".enc";
-const defaultExcludePattern = "\\.enc\\.";
+const defaultSuffix = ".enc1";
+const defaultExcludePattern = "\\.enc1\\.";
 
 program
   .storeOptionsAsProperties(false)
