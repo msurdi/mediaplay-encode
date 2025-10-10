@@ -41,7 +41,7 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
     "-crf",
     "30",
     "-preset",
-    "6",
+    "4",
     "-b:a",
     "128k",
     "-movflags",
