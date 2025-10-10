@@ -47,7 +47,6 @@
   },
   "dependencies": {
     "commander": "^11.1.0",
-    "ffmpeg-static": "^5.1.0",
     "filesize": "^10.0.6",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^11.1.0",

@@ -1,9 +1,24 @@
-const ffmpegPath = require("ffmpeg-static");
 const fluentFFmpeg = require("fluent-ffmpeg");
 const tempfile = require("tempfile");
+const { execSync } = require("child_process");
 const logger = require("./logger");
 
-fluentFFmpeg.setFfmpegPath(ffmpegPath);
+// Check if ffmpeg is available in system PATH
+const checkFFmpegAvailability = () => {
+  try {
+    execSync("ffmpeg -version", { stdio: "ignore" });
+    logger.debug("ffmpeg found in system PATH");
+  } catch (error) {
+    logger.error("ffmpeg is not installed or not available in system PATH");
+    logger.error(
+      "Error: ffmpeg is required but not found. Please install ffmpeg and ensure it's available in your system PATH."
+    );
+    process.exit(1);
+  }
+};
+
+// Check ffmpeg availability on module load
+checkFFmpegAvailability();
 
 class EncodingError extends Error {
   constructor(stdout, stderr) {
