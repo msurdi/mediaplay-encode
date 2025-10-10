@@ -1,5 +1,5 @@
 **/*.tmp
-**/*.enc.*
+**/*.enc*.*
 **/*deleteme.mp4
 !in-progress/*.tmp
 !failed/*.failed

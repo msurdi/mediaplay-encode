@@ -57,7 +57,7 @@ const withMp4Params = (command) => {
 
 const runFFmpeg = async (sourcePath, targetPath, { preview }) => {
   const getBaseCommand = () => {
-    const command = fluentFFmpeg(sourcePath, { niceness: 20 }).videoFilter(
+    const command = fluentFFmpeg(sourcePath).videoFilter(
       "scale='min(1280,iw)':'-2'"
     );
 

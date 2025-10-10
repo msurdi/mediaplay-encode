@@ -33,7 +33,9 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should have generated an encoded file", async () => {
-      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc.mp4"))).toBe(true);
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4"))).toBe(
+        true
+      );
     });
   });
 
@@ -48,7 +50,9 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should have generated an encoded file", async () => {
-      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc.mp4"))).toBe(true);
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4"))).toBe(
+        true
+      );
     });
   });
 
@@ -66,7 +70,7 @@ describe("Mediaplay encode", () => {
 
     it("Should have generated an encoded file", async () => {
       expect(
-        await fs.pathExists(fixturePath("uppercase/MOV_BBB.enc.mp4"))
+        await fs.pathExists(fixturePath("uppercase/MOV_BBB.enc1.mp4"))
       ).toBe(true);
     });
   });
@@ -89,7 +93,7 @@ describe("Mediaplay encode", () => {
 
     it("Should have generated an encoded file", async () => {
       expect(
-        await fs.pathExists(fixturePath("ok/mov_bbb_deleteme.enc.mp4"))
+        await fs.pathExists(fixturePath("ok/mov_bbb_deleteme.enc1.mp4"))
       ).toBe(true);
     });
   });
@@ -114,7 +118,7 @@ describe("Mediaplay encode", () => {
     it("Should have generated a failed file", async () => {
       expect(
         await fs.pathExists(
-          fixturePath("invalid/invalid_deleteme.enc.mp4.failed")
+          fixturePath("invalid/invalid_deleteme.enc1.mp4.failed")
         )
       ).toBe(true);
     });
@@ -128,20 +132,20 @@ describe("Mediaplay encode", () => {
     it("Should have not generated a failure file", async () => {
       expect(
         await fs.pathExists(
-          fixturePath("in-progress/in-progress.enc.mp4.failed")
+          fixturePath("in-progress/in-progress.enc1.mp4.failed")
         )
       ).toBe(false);
     });
 
     it("should have not encoded the file", async () => {
       expect(
-        await fs.pathExists(fixturePath("in-progress/in-progress.enc.mp4"))
+        await fs.pathExists(fixturePath("in-progress/in-progress.enc1.mp4"))
       ).toBe(false);
     });
 
     it("should have not modified the already existing in-progress file", async () => {
       const contents = await fs.readFile(
-        fixturePath("in-progress/.in-progress.enc.mp4.tmp"),
+        fixturePath("in-progress/.in-progress.enc1.mp4.tmp"),
         "utf8"
       );
       expect(contents).toEqual("An in-progress file\n");
@@ -162,13 +166,13 @@ describe("Mediaplay encode", () => {
 
     it("Should have not generated an encoded file", async () => {
       expect(
-        await fs.pathExists(fixturePath("hidden/.dir/mov_bbb.enc.mp4"))
+        await fs.pathExists(fixturePath("hidden/.dir/mov_bbb.enc1.mp4"))
       ).toBe(false);
     });
 
     it("Should have not generated a failure file", async () => {
       expect(
-        await fs.pathExists(fixturePath("hidden/.dir/mov_bbb.enc.mp4.failed"))
+        await fs.pathExists(fixturePath("hidden/.dir/mov_bbb.enc1.mp4.failed"))
       ).toBe(false);
     });
   });
@@ -186,14 +190,14 @@ describe("Mediaplay encode", () => {
     });
 
     it("Should not have generated an encoded files", async () => {
-      expect(await fs.pathExists(fixturePath("invalid/invalid.enc.mp4"))).toBe(
+      expect(await fs.pathExists(fixturePath("invalid/invalid.enc1.mp4"))).toBe(
         false
       );
     });
 
     it("Should have generated an invalid encoding file", async () => {
       expect(
-        await fs.pathExists(fixturePath("invalid/invalid.enc.mp4.failed"))
+        await fs.pathExists(fixturePath("invalid/invalid.enc1.mp4.failed"))
       ).toBe(true);
     });
   });
