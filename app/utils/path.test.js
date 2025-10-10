@@ -89,7 +89,7 @@ describe("Path utils", () => {
       expect(workInProgressPath).toEqual(".test.mp4.tmp");
     });
 
-    it("Creates a valid work in progress path from a file name", () => {
+    it("Creates a valid work in progress path with limited length for long file names", () => {
       const workInProgressPath = pathUtils.getWorkInProgressPathFromTargetPath(
         "test.mp4".repeat(200)
       );

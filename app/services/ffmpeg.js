@@ -7,7 +7,7 @@ const checkFFmpegAvailability = () => {
   try {
     execSync("ffmpeg -version", { stdio: "ignore" });
     logger.debug("ffmpeg found in system PATH");
-  } catch (error) {
+  } catch {
     logger.error("ffmpeg is not installed or not available in system PATH");
     logger.error(
       "Error: ffmpeg is required but not found. Please install ffmpeg and ensure it's available in your system PATH."

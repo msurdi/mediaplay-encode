@@ -27,7 +27,6 @@ const run = async (
   const econdedExtension = "mp4";
   const suffixWithExtension = `${encodedSuffix}.${econdedExtension}`;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     logger.info(`Finding files to encode at ${scanPaths}`);
     const nextFile = await findNextFile({

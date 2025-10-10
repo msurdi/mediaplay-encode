@@ -33,11 +33,10 @@
     "bin/**"
   ],
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@types/jest": "^30.0.0",
-    "eslint": "^8.57.1",
-    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-prettier": "^5.5.4",
     "find-root": "^1.1.0",
