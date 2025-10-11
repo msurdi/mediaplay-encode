@@ -201,4 +201,73 @@ describe("Mediaplay encode", () => {
       ).toBe(true);
     });
   });
+
+  describe("Exit status when no files are found and looping is disabled", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("hidden");
+      // Test with hidden directory which contains no encodable files
+      result = await cli(["hidden"]);
+    });
+
+    it("Should exit with status 1 when no files are encoded", async () => {
+      expect(result.code).toBe(1);
+    });
+
+    it("Should not have generated any encoded files", async () => {
+      expect(
+        await fs.pathExists(fixturePath("hidden/.dir/mov_bbb.enc1.mp4"))
+      ).toBe(false);
+    });
+  });
+
+  describe("Exit status when files are found and encoded", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      result = await cli(["ok"]);
+    });
+
+    it("Should exit with status 0 when files are encoded", async () => {
+      expect(result.code).toBe(0);
+    });
+
+    it("Should have generated an encoded file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4"))).toBe(
+        true
+      );
+    });
+  });
+
+  describe("Exit status when looping is enabled", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("hidden");
+      // Test with loop interval of 1 second, but we'll kill it quickly
+      // Since this would run indefinitely, we need to handle it differently
+      result = await new Promise((resolve) => {
+        const { exec } = require("child_process");
+        const child = exec(
+          `${require("path").join(__dirname, "../bin/mediaplay-encode.js")} --loop-interval 1 hidden`,
+          { cwd: fixturePath(".") },
+          (error, stdout, stderr) => {
+            resolve({
+              code: error && error.code ? error.code : 0,
+              error,
+              stdout,
+              stderr,
+            });
+          }
+        );
+
+        // Kill the process after a short delay to simulate stopping the loop
+        setTimeout(() => {
+          child.kill("SIGTERM");
+        }, 2000);
+      });
+    });
+
+    it("Should not exit with status 1 when looping is enabled (even with no files)", async () => {
+      // When killed with SIGTERM, the exit code is typically 143 (128 + 15)
+      // The important thing is that it's NOT 1 (which would indicate our "no files encoded" logic)
+      expect(result.code).not.toBe(1);
+    });
+  });
 });

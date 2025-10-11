@@ -23,6 +23,7 @@ const run = async (
   }
 
   const failedFiles = [];
+  let filesEncoded = 0;
 
   const econdedExtension = "mp4";
   const suffixWithExtension = `${encodedSuffix}.${econdedExtension}`;
@@ -46,6 +47,7 @@ const run = async (
           deleteSource,
           workDir,
         });
+        filesEncoded++;
       } catch (error) {
         if (error instanceof EncodingError) {
           failedFiles.push(nextFile);
@@ -60,6 +62,8 @@ const run = async (
       break;
     }
   }
+
+  return filesEncoded;
 };
 
 module.exports = { run };

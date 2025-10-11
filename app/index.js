@@ -69,4 +69,12 @@ program
 
 const scanPaths = program.args.length ? program.args : defaultPaths;
 
-module.exports = async () => encode.run(scanPaths, program.opts());
+module.exports = async () => {
+  const filesEncoded = await encode.run(scanPaths, program.opts());
+  const options = program.opts();
+
+  // If looping is disabled and no files were encoded, exit with status 1
+  if (!options.loopInterval && filesEncoded === 0) {
+    process.exit(1);
+  }
+};
