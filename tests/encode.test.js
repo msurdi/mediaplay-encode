@@ -17,7 +17,7 @@ describe("Mediaplay encode", () => {
 
     it("Should print help/instructions", async () => {
       expect(result.stdout).toContain(
-        "Usage: mediaplay-encode [options] [paths...]"
+        "Usage: mediaplay-encode [options] [path]"
       );
     });
   });

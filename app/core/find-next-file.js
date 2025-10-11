@@ -15,7 +15,7 @@ module.exports = async ({
   exclude = [],
   excludePattern,
   extensions,
-  scanPaths,
+  scanPath,
   encodedSuffix,
 }) => {
   const isNotExcluded = (filePath) => !exclude.includes(filePath);
@@ -34,11 +34,7 @@ module.exports = async ({
   const doesNotMatchExclusionPattern = (filePath) =>
     !matchesExclusionPattern(filePath);
 
-  const allFilesByScanPath = await Promise.all(
-    scanPaths.map((scanPath) => filesService.find(scanPath))
-  );
-
-  const allFiles = allFilesByScanPath.flat();
+  const allFiles = await filesService.find(scanPath);
   const allPaths = allFiles.map((file) => file.path);
 
   const filesToEncode = allPaths

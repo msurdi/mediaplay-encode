@@ -5,7 +5,7 @@ const { sleepSeconds } = require("../utils/time");
 const processFile = require("./process-file");
 
 const run = async (
-  scanPaths,
+  scanPath,
   {
     extensions,
     excludePattern,
@@ -28,11 +28,11 @@ const run = async (
   const suffixWithExtension = `${encodedSuffix}.${econdedExtension}`;
 
   while (true) {
-    logger.info(`Finding files to encode at ${scanPaths}`);
+    logger.info(`Finding files to encode at ${scanPath}`);
     const nextFile = await findNextFile({
       exclude: failedFiles,
       excludePattern,
-      scanPaths,
+      scanPath,
       encodedSuffix: suffixWithExtension,
       extensions,
     });

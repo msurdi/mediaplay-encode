@@ -2,7 +2,7 @@ const { program } = require("commander");
 const packageJson = require("../package.json");
 const encode = require("./core/encode");
 
-const defaultPaths = [process.cwd()];
+const defaultPath = process.cwd();
 
 const defaultExtensions = [
   "f4v",
@@ -27,7 +27,7 @@ const defaultExcludePattern = "\\.enc1\\.";
 program
   .storeOptionsAsProperties(false)
   .version(packageJson.version)
-  .arguments("[paths...]")
+  .arguments("[path]")
   .option("--debug", "Enable debug output")
   .option(
     "--delete-source",
@@ -62,10 +62,10 @@ program
   )
   .parse(process.argv);
 
-const scanPaths = program.args.length ? program.args : defaultPaths;
+const scanPath = program.args.length ? program.args[0] : defaultPath;
 
 module.exports = async () => {
-  const filesEncoded = await encode.run(scanPaths, program.opts());
+  const filesEncoded = await encode.run(scanPath, program.opts());
   const options = program.opts();
 
   // If looping is disabled and no files were encoded, exit with status 1

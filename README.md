@@ -17,7 +17,7 @@ Usage
 -----
 
 ```bash
-Usage: mediaplay-encode [options] [paths...]
+Usage: mediaplay-encode [options] [path]
 
 Options:
   -V, --version                           output the version number
