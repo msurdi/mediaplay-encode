@@ -30,6 +30,7 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
   const args = [
     "-i",
     sourcePath,
+    ...(preview ? ["-t", "10"] : []),
     "-vf",
     "scale='min(1280,iw)':'-2'",
     "-f",
@@ -48,13 +49,9 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
     "+faststart",
     "-map",
     "0",
+    targetPath,
   ];
 
-  if (preview) {
-    args.splice(2, 0, "-t", "10"); // Insert duration after input file
-  }
-
-  args.push(targetPath);
   return args;
 };
 
