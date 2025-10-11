@@ -35,7 +35,7 @@ module.exports = async ({
     !matchesExclusionPattern(filePath);
 
   const allFiles = await filesService.find(scanPath);
-  const allPaths = allFiles.map((file) => file.path);
+  const allPaths = allFiles; // allFiles is now already an array of file paths
 
   const filesToEncode = allPaths
     .filter(isNotExcluded)

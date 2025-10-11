@@ -1,29 +1,26 @@
-const walkdir = require("walkdir");
+const fastGlob = require("fast-glob");
 const fs = require("fs-extra");
 const path = require("path");
 
-const isNotHidden = (filePath) => !filePath.startsWith(".");
-
-const fileMapToList = (fileMap) =>
-  Object.keys(fileMap).map((filePath) => ({
-    path: filePath,
-    isDirectory: fileMap[filePath].isDirectory(),
-    modifiedAt: fileMap[filePath].mtime,
-  }));
-
-const find = async (scanDir, recurse = true) => {
-  const fileMap = await walkdir.async(scanDir, {
-    return_object: true,
-    no_recurse: !recurse,
-    find_links: false,
-    filter: (directoryPath, fileNames) => {
-      const directoryName = path.basename(directoryPath);
-      const nonHiddenFiles = fileNames.filter(isNotHidden);
-      return directoryName.startsWith(".") ? [] : nonHiddenFiles;
-    },
+const find = async (scanDir) => {
+  const stats = await fs.stat(scanDir);
+  
+  if (stats.isFile()) {
+    // If scanDir is a specific file, return just that file
+    return [path.resolve(scanDir)];
+  }
+  
+  // If scanDir is a directory, scan recursively
+  const files = await fastGlob("**/*", {
+    cwd: scanDir,
+    onlyFiles: true,
+    dot: false, // Exclude hidden files (starting with .)
+    ignore: ["**/.*/**"], // Exclude files inside hidden directories
+    absolute: true,
+    followSymbolicLinks: false,
   });
 
-  return fileMapToList(fileMap).filter((file) => !file.isDirectory);
+  return files;
 };
 
 const touch = async (filePath) => fs.writeFile(filePath, "");
