@@ -28,8 +28,6 @@ Options:
                                           false)
   -p, --preview                           Encode only 10s, for previewing the result (default:
                                           false)
-  -r, --reverse-order                     Prioritize encoding newer (by creation time) files
-                                          (default: false)
   -e, --extensions [extension...]         Comma separated list of extensions to encode from
                                           (default:
                                           "f4v,mov,flv,rm,avi,mkv,mp4,m4v,wmv,mpeg,asf,divx,mpg")

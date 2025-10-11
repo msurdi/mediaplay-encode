@@ -17,7 +17,6 @@ module.exports = async ({
   extensions,
   scanPaths,
   encodedSuffix,
-  reverseOrder,
 }) => {
   const isNotExcluded = (filePath) => !exclude.includes(filePath);
 
@@ -39,10 +38,7 @@ module.exports = async ({
     scanPaths.map((scanPath) => filesService.find(scanPath))
   );
 
-  const filePriority = (file1, file2) =>
-    new Date(file1.modifiedAt) - new Date(file2.modifiedAt);
-
-  const allFiles = allFilesByScanPath.flat().sort(filePriority);
+  const allFiles = allFilesByScanPath.flat();
   const allPaths = allFiles.map((file) => file.path);
 
   const filesToEncode = allPaths
@@ -74,19 +70,5 @@ module.exports = async ({
     return null;
   }
 
-  if (candidateFilesToEncode.length === 1) {
-    return candidateFilesToEncode[0];
-  }
-
-  // Do not return the first/last elements of the array, to reduce the
-  // possibility it's a file that's currently being written to.
-
-  if (reverseOrder) {
-    const secondToLast =
-      candidateFilesToEncode[candidateFilesToEncode.length - 2];
-    return secondToLast;
-  }
-  const second = candidateFilesToEncode[1];
-
-  return second;
+  return candidateFilesToEncode[0];
 };

@@ -13,7 +13,6 @@ const run = async (
     encodedSuffix,
     preview,
     deleteSource,
-    reverseOrder,
     debug,
     workDir,
   }
@@ -36,7 +35,6 @@ const run = async (
       scanPaths,
       encodedSuffix: suffixWithExtension,
       extensions,
-      reverseOrder,
     });
 
     if (nextFile) {

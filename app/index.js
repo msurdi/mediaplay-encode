@@ -36,11 +36,6 @@ program
   )
   .option("-p, --preview", "Encode only 10s, for previewing the result", false)
   .option(
-    "-r, --reverse-order",
-    "Prioritize encoding newer (by creation time) files",
-    false
-  )
-  .option(
     "-e, --extensions [extension...]",
     "Comma separated list of extensions to encode from",
     defaultExtensions.join(",")
