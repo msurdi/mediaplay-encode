@@ -39,10 +39,22 @@ module.exports = async (
 
   const sourceSize = await size(effectiveSourcePath);
   logger.info(`Encoding ${effectiveSourcePath}`);
+
+  if (await fs.pathExists(effectiveWorkInProgressPath)) {
+    throw new Error(
+      `Work in progress path already exists: ${effectiveWorkInProgressPath}`
+    );
+  }
+
   try {
     await runFFmpeg(effectiveSourcePath, effectiveWorkInProgressPath, {
       preview,
     });
+
+    if (await fs.pathExists(effectiveTargetPath)) {
+      throw new Error(`Target path already exists: ${effectiveTargetPath}`);
+    }
+
     await fs.move(effectiveWorkInProgressPath, effectiveTargetPath);
   } catch (error) {
     logger.error(error);
