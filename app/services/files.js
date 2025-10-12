@@ -4,18 +4,17 @@ const path = require("path");
 
 const find = async (scanDir) => {
   const stats = await fs.stat(scanDir);
-  
+
   if (stats.isFile()) {
     // If scanDir is a specific file, return just that file
     return [path.resolve(scanDir)];
   }
-  
+
   // If scanDir is a directory, scan recursively
   const files = await fastGlob("**/*", {
     cwd: scanDir,
     onlyFiles: true,
     dot: false, // Exclude hidden files (starting with .)
-    ignore: ["**/.*/**"], // Exclude files inside hidden directories
     absolute: true,
     followSymbolicLinks: false,
   });
