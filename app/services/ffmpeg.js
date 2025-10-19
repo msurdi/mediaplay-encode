@@ -40,7 +40,7 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
     "-c:v",
     "libsvtav1",
     "-crf",
-    "30",
+    "20",
     "-preset",
     "4",
     "-b:a",
