@@ -15,6 +15,33 @@ const checkFFmpegAvailability = () => {
   }
 };
 
+// Check if the source file is already using AV1 codec
+const isAV1Encoded = (sourcePath) => {
+  try {
+    const output = execSync(
+      `ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 "${sourcePath}"`,
+      { encoding: "utf8" }
+    );
+    const codec = output.trim().toLowerCase();
+    const isAV1 = codec === "av01" || codec === "av1";
+    if (isAV1) {
+      logger.debug(
+        `Source file ${sourcePath} is already AV1 encoded (${codec})`
+      );
+    } else {
+      logger.debug(
+        `Source file ${sourcePath} codec: ${codec}, will encode to AV1`
+      );
+    }
+    return isAV1;
+  } catch (error) {
+    logger.debug(
+      `Failed to detect codec for ${sourcePath}, assuming not AV1: ${error.message}`
+    );
+    return false;
+  }
+};
+
 // Check ffmpeg availability on module load
 checkFFmpegAvailability();
 
@@ -27,32 +54,57 @@ class EncodingError extends Error {
 }
 
 const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
-  const args = [
-    "-i",
-    sourcePath,
-    ...(preview ? ["-t", "10"] : []),
-    "-vf",
-    "scale='min(1280,iw)':'-2'",
-    "-f",
-    "mp4",
-    "-c:a",
-    "aac",
-    "-c:v",
-    "libsvtav1",
-    "-crf",
-    "25",
-    "-preset",
-    "4",
-    "-b:a",
-    "128k",
-    "-movflags",
-    "+faststart",
-    "-map",
-    "0",
-    targetPath,
-  ];
+  const isSourceAV1 = isAV1Encoded(sourcePath);
 
-  return args;
+  if (isSourceAV1) {
+    // For AV1 files, just copy streams and apply faststart
+    logger.debug(
+      "Source is already AV1, using copy mode with faststart optimization"
+    );
+    const args = [
+      "-i",
+      sourcePath,
+      ...(preview ? ["-t", "10"] : []),
+      "-f",
+      "mp4",
+      "-c",
+      "copy",
+      "-movflags",
+      "+faststart",
+      "-map",
+      "0",
+      targetPath,
+    ];
+    return args;
+  } else {
+    // For non-AV1 files, do full encoding
+    logger.debug("Source is not AV1, performing full encoding");
+    const args = [
+      "-i",
+      sourcePath,
+      ...(preview ? ["-t", "10"] : []),
+      "-vf",
+      "scale='min(1280,iw)':'-2'",
+      "-f",
+      "mp4",
+      "-c:a",
+      "aac",
+      "-c:v",
+      "libsvtav1",
+      "-crf",
+      "25",
+      "-preset",
+      "4",
+      "-b:a",
+      "128k",
+      "-movflags",
+      "+faststart",
+      "-map",
+      "0",
+      targetPath,
+    ];
+    return args;
+  }
 };
 
 const runFFmpegCommand = (args) => {
