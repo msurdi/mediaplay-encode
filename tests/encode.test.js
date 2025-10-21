@@ -240,7 +240,7 @@ describe("Mediaplay encode", () => {
   describe("Processing only one file with --one option", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("ok");
-      
+
       // Create multiple test files to ensure only one gets processed
       await fs.copyFile(
         fixturePath("ok/mov_bbb.mp4"),
@@ -250,7 +250,7 @@ describe("Mediaplay encode", () => {
         fixturePath("ok/mov_bbb.mp4"),
         fixturePath("ok/mov_bbb_copy2.mp4")
       );
-      
+
       result = await cli(["--one", "ok"]);
     });
 
@@ -268,7 +268,9 @@ describe("Mediaplay encode", () => {
 
     it("Should process exactly one file", async () => {
       const encodedFiles = await fs.readdir(fixturePath("ok"));
-      const encodedCount = encodedFiles.filter(file => file.includes('.enc1.')).length;
+      const encodedCount = encodedFiles.filter((file) =>
+        file.includes(".enc1.")
+      ).length;
       expect(encodedCount).toBe(1);
     });
 
@@ -276,19 +278,21 @@ describe("Mediaplay encode", () => {
       // At least one of the original files should still exist without encoding
       const originalFiles = [
         "mov_bbb.mp4",
-        "mov_bbb_copy1.mp4", 
-        "mov_bbb_copy2.mp4"
+        "mov_bbb_copy1.mp4",
+        "mov_bbb_copy2.mp4",
       ];
-      
+
       let unprocessedCount = 0;
       for (const file of originalFiles) {
         const originalExists = await fs.pathExists(fixturePath(`ok/${file}`));
-        const encodedExists = await fs.pathExists(fixturePath(`ok/${file.replace('.mp4', '.enc1.mp4')}`));
+        const encodedExists = await fs.pathExists(
+          fixturePath(`ok/${file.replace(".mp4", ".enc1.mp4")}`)
+        );
         if (originalExists && !encodedExists) {
           unprocessedCount++;
         }
       }
-      
+
       expect(unprocessedCount).toBeGreaterThanOrEqual(2);
     });
   });
@@ -296,7 +300,7 @@ describe("Mediaplay encode", () => {
   describe("Processing only one file with -o option", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("ok");
-      
+
       // Create multiple test files to ensure only one gets processed
       await fs.copyFile(
         fixturePath("ok/mov_bbb.mp4"),
@@ -306,7 +310,7 @@ describe("Mediaplay encode", () => {
         fixturePath("ok/mov_bbb.mp4"),
         fixturePath("ok/mov_bbb_copy4.mp4")
       );
-      
+
       result = await cli(["-o", "ok"]);
     });
 
@@ -324,7 +328,9 @@ describe("Mediaplay encode", () => {
 
     it("Should process exactly one file", async () => {
       const encodedFiles = await fs.readdir(fixturePath("ok"));
-      const encodedCount = encodedFiles.filter(file => file.includes('.enc1.')).length;
+      const encodedCount = encodedFiles.filter((file) =>
+        file.includes(".enc1.")
+      ).length;
       expect(encodedCount).toBe(1);
     });
   });

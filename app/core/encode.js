@@ -47,7 +47,7 @@ const run = async (
           workDir,
         });
         filesEncoded++;
-        
+
         // If 'one' option is enabled, process only one file and exit
         if (one) {
           break;
