@@ -15,6 +15,7 @@ const run = async (
     deleteSource,
     debug,
     workDir,
+    one,
   }
 ) => {
   if (debug) {
@@ -46,6 +47,11 @@ const run = async (
           workDir,
         });
         filesEncoded++;
+        
+        // If 'one' option is enabled, process only one file and exit
+        if (one) {
+          break;
+        }
       } catch (error) {
         if (error instanceof EncodingError) {
           failedFiles.push(nextFile);

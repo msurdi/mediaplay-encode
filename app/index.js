@@ -60,6 +60,11 @@ program
     "Temporary work directory for encoding process",
     ""
   )
+  .option(
+    "-o, --one",
+    "Process only one file and terminate, instead of processing all files",
+    false
+  )
   .parse(process.argv);
 
 const scanPath = program.args.length ? program.args[0] : defaultPath;

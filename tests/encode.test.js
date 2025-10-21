@@ -237,6 +237,98 @@ describe("Mediaplay encode", () => {
     });
   });
 
+  describe("Processing only one file with --one option", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      
+      // Create multiple test files to ensure only one gets processed
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("ok/mov_bbb_copy1.mp4")
+      );
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("ok/mov_bbb_copy2.mp4")
+      );
+      
+      result = await cli(["--one", "ok"]);
+    });
+
+    afterAll(async () => {
+      // Clean up the test files we created
+      await fs.remove(fixturePath("ok/mov_bbb_copy1.mp4"));
+      await fs.remove(fixturePath("ok/mov_bbb_copy2.mp4"));
+      await fs.remove(fixturePath("ok/mov_bbb_copy1.enc1.mp4"));
+      await fs.remove(fixturePath("ok/mov_bbb_copy2.enc1.mp4"));
+    });
+
+    it("Should exit with status 0 when one file is encoded", async () => {
+      expect(result.code).toBe(0);
+    });
+
+    it("Should process exactly one file", async () => {
+      const encodedFiles = await fs.readdir(fixturePath("ok"));
+      const encodedCount = encodedFiles.filter(file => file.includes('.enc1.')).length;
+      expect(encodedCount).toBe(1);
+    });
+
+    it("Should leave other files unprocessed", async () => {
+      // At least one of the original files should still exist without encoding
+      const originalFiles = [
+        "mov_bbb.mp4",
+        "mov_bbb_copy1.mp4", 
+        "mov_bbb_copy2.mp4"
+      ];
+      
+      let unprocessedCount = 0;
+      for (const file of originalFiles) {
+        const originalExists = await fs.pathExists(fixturePath(`ok/${file}`));
+        const encodedExists = await fs.pathExists(fixturePath(`ok/${file.replace('.mp4', '.enc1.mp4')}`));
+        if (originalExists && !encodedExists) {
+          unprocessedCount++;
+        }
+      }
+      
+      expect(unprocessedCount).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe("Processing only one file with -o option", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      
+      // Create multiple test files to ensure only one gets processed
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("ok/mov_bbb_copy3.mp4")
+      );
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("ok/mov_bbb_copy4.mp4")
+      );
+      
+      result = await cli(["-o", "ok"]);
+    });
+
+    afterAll(async () => {
+      // Clean up the test files we created
+      await fs.remove(fixturePath("ok/mov_bbb_copy3.mp4"));
+      await fs.remove(fixturePath("ok/mov_bbb_copy4.mp4"));
+      await fs.remove(fixturePath("ok/mov_bbb_copy3.enc1.mp4"));
+      await fs.remove(fixturePath("ok/mov_bbb_copy4.enc1.mp4"));
+    });
+
+    it("Should exit with status 0 when one file is encoded", async () => {
+      expect(result.code).toBe(0);
+    });
+
+    it("Should process exactly one file", async () => {
+      const encodedFiles = await fs.readdir(fixturePath("ok"));
+      const encodedCount = encodedFiles.filter(file => file.includes('.enc1.')).length;
+      expect(encodedCount).toBe(1);
+    });
+  });
+
   describe("Exit status when looping is enabled", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("hidden");
