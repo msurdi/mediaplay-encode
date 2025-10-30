@@ -72,7 +72,9 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
       "-movflags",
       "+faststart",
       "-map",
-      "0",
+      "0:a:0",
+      "-map",
+      "0:v:0",
       targetPath,
     ];
     return args;
@@ -100,7 +102,9 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
       "-movflags",
       "+faststart",
       "-map",
-      "0",
+      "0:a:0",
+      "-map",
+      "0:v:0",
       targetPath,
     ];
     return args;
