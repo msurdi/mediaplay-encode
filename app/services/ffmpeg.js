@@ -1,5 +1,6 @@
 const { execSync, spawn } = require("child_process");
 const logger = require("./logger");
+const { createProgressTracker } = require("../utils/progress");
 
 // Check if ffmpeg is available in system PATH
 const checkFFmpegAvailability = () => {
@@ -62,6 +63,9 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
       "Source is already AV1, using copy mode with faststart optimization"
     );
     const args = [
+      "-y",
+      "-progress",
+      "pipe:1", // Output progress to stdout in key-value format
       "-i",
       sourcePath,
       ...(preview ? ["-t", "10"] : []),
@@ -82,6 +86,9 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
     // For non-AV1 files, do full encoding
     logger.debug("Source is not AV1, performing full encoding");
     const args = [
+      "-y",
+      "-progress",
+      "pipe:1", // Output progress to stdout in key-value format
       "-i",
       sourcePath,
       ...(preview ? ["-t", "10"] : []),
@@ -111,18 +118,39 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
   }
 };
 
-const runFFmpegCommand = (args) => {
+const runFFmpegCommand = (args, sourcePath) => {
   return new Promise((resolve, reject) => {
     const command = spawn("ffmpeg", args);
     let stdout = "";
     let stderr = "";
+    let progressBuffer = "";
+    const progressTracker = createProgressTracker(sourcePath);
 
     command.stdout.on("data", (data) => {
-      stdout += data.toString();
+      const chunk = data.toString();
+      stdout += chunk;
+      progressBuffer += chunk;
+
+      // Process complete progress reports
+      // ffmpeg -progress outputs blocks that end with "progress=continue" or "progress=end"
+      let progressMatch;
+      while (
+        (progressMatch = progressBuffer.match(
+          /(.*?)progress=(continue|end)\n/s
+        ))
+      ) {
+        const completeProgressBlock = `${progressMatch[1]}progress=${progressMatch[2]}`;
+        progressTracker.updateKeyValue(completeProgressBlock);
+
+        // Remove the processed block from the buffer
+        progressBuffer = progressBuffer.substring(progressMatch[0].length);
+      }
     });
 
     command.stderr.on("data", (data) => {
-      stderr += data.toString();
+      const chunk = data.toString();
+      stderr += chunk;
+      // stderr now only contains logs and error messages, not progress
     });
 
     command.on("spawn", () => {
@@ -130,6 +158,8 @@ const runFFmpegCommand = (args) => {
     });
 
     command.on("error", (error) => {
+      // Clear progress line before showing error
+      progressTracker.clear();
       reject(
         new EncodingError(
           `Failed to start ffmpeg: ${error.message}`,
@@ -141,10 +171,12 @@ const runFFmpegCommand = (args) => {
 
     command.on("close", (code) => {
       if (code === 0) {
-        logger.debug(stdout);
-        logger.debug(stderr);
+        progressTracker.complete();
+        logger.debug("ffmpeg stdout:", stdout);
+        logger.debug("ffmpeg stderr:", stderr);
         resolve();
       } else {
+        progressTracker.clear();
         reject(
           new EncodingError(`ffmpeg exited with code ${code}`, stdout, stderr)
         );
@@ -155,7 +187,7 @@ const runFFmpegCommand = (args) => {
 
 const runFFmpeg = async (sourcePath, targetPath, { preview }) => {
   const args = buildFFmpegArgs(sourcePath, targetPath, { preview });
-  return runFFmpegCommand(args);
+  return runFFmpegCommand(args, sourcePath);
 };
 
 module.exports = { runFFmpeg, EncodingError };
