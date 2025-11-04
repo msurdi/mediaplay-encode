@@ -1,13 +1,23 @@
 const { execSync, spawn } = require("child_process");
 const logger = require("./logger");
 const { createProgressTracker } = require("../utils/progress");
+const { formatTimeout } = require("../utils/timeout");
 
 // Check if ffmpeg is available in system PATH
-const checkFFmpegAvailability = () => {
+const checkFFmpegAvailability = (timeoutMs = null) => {
   try {
-    execSync("ffmpeg -version", { stdio: "ignore" });
+    const options = { stdio: "ignore" };
+    if (timeoutMs) {
+      options.timeout = timeoutMs;
+    }
+    execSync("ffmpeg -version", options);
     logger.debug("ffmpeg found in system PATH");
-  } catch {
+  } catch (error) {
+    if (error.code === "TIMEOUT") {
+      logger.error(
+        `ffmpeg version check timed out after ${formatTimeout(timeoutMs)}`
+      );
+    }
     logger.error("ffmpeg is not installed or not available in system PATH");
     logger.error(
       "Error: ffmpeg is required but not found. Please install ffmpeg and ensure it's available in your system PATH."
@@ -17,11 +27,15 @@ const checkFFmpegAvailability = () => {
 };
 
 // Check if the source file is already using AV1 codec
-const isAV1Encoded = (sourcePath) => {
+const isAV1Encoded = (sourcePath, timeoutMs = null) => {
   try {
+    const options = { encoding: "utf8" };
+    if (timeoutMs) {
+      options.timeout = timeoutMs;
+    }
     const output = execSync(
       `ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 "${sourcePath}"`,
-      { encoding: "utf8" }
+      options
     );
     const codec = output.trim().toLowerCase();
     const isAV1 = codec === "av01" || codec === "av1";
@@ -36,14 +50,21 @@ const isAV1Encoded = (sourcePath) => {
     }
     return isAV1;
   } catch (error) {
-    logger.debug(
-      `Failed to detect codec for ${sourcePath}, assuming not AV1: ${error.message}`
-    );
+    if (error.code === "TIMEOUT") {
+      logger.debug(
+        `Codec detection for ${sourcePath} timed out after ${formatTimeout(timeoutMs)}, assuming not AV1`
+      );
+    } else {
+      logger.debug(
+        `Failed to detect codec for ${sourcePath}, assuming not AV1: ${error.message}`
+      );
+    }
     return false;
   }
 };
 
 // Check ffmpeg availability on module load
+// Note: We don't have timeout available at module load time, so we use a reasonable default
 checkFFmpegAvailability();
 
 class EncodingError extends Error {
@@ -54,8 +75,12 @@ class EncodingError extends Error {
   }
 }
 
-const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
-  const isSourceAV1 = isAV1Encoded(sourcePath);
+const buildFFmpegArgs = (
+  sourcePath,
+  targetPath,
+  { preview, timeoutMs = null }
+) => {
+  const isSourceAV1 = isAV1Encoded(sourcePath, timeoutMs);
 
   if (isSourceAV1) {
     // For AV1 files, just copy streams and apply faststart
@@ -118,13 +143,40 @@ const buildFFmpegArgs = (sourcePath, targetPath, { preview }) => {
   }
 };
 
-const runFFmpegCommand = (args, sourcePath) => {
+const runFFmpegCommand = (args, sourcePath, timeoutMs = null) => {
   return new Promise((resolve, reject) => {
     const command = spawn("ffmpeg", args);
     let stdout = "";
     let stderr = "";
     let progressBuffer = "";
-    const progressTracker = createProgressTracker(sourcePath);
+    const progressTracker = createProgressTracker(sourcePath, timeoutMs);
+    let timeoutHandle = null;
+
+    // Set up timeout if specified
+    if (timeoutMs) {
+      logger.debug(`Setting ffmpeg timeout to ${formatTimeout(timeoutMs)}`);
+      timeoutHandle = setTimeout(() => {
+        logger.warn(
+          `ffmpeg command timed out after ${formatTimeout(timeoutMs)}, killing process`
+        );
+        command.kill("SIGKILL");
+        progressTracker.clear();
+        reject(
+          new EncodingError(
+            `ffmpeg timed out after ${formatTimeout(timeoutMs)}`,
+            stdout,
+            stderr
+          )
+        );
+      }, timeoutMs);
+    }
+
+    const clearTimeoutIfSet = () => {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+        timeoutHandle = null;
+      }
+    };
 
     command.stdout.on("data", (data) => {
       const chunk = data.toString();
@@ -154,10 +206,16 @@ const runFFmpegCommand = (args, sourcePath) => {
     });
 
     command.on("spawn", () => {
-      logger.debug(`Running ffmpeg command: ffmpeg ${args.join(" ")}`);
+      const timeoutMsg = timeoutMs
+        ? ` (timeout: ${formatTimeout(timeoutMs)})`
+        : "";
+      logger.debug(
+        `Running ffmpeg command: ffmpeg ${args.join(" ")}${timeoutMsg}`
+      );
     });
 
     command.on("error", (error) => {
+      clearTimeoutIfSet();
       // Clear progress line before showing error
       progressTracker.clear();
       reject(
@@ -170,6 +228,7 @@ const runFFmpegCommand = (args, sourcePath) => {
     });
 
     command.on("close", (code) => {
+      clearTimeoutIfSet();
       if (code === 0) {
         progressTracker.complete();
         logger.debug("ffmpeg stdout:", stdout);
@@ -185,9 +244,13 @@ const runFFmpegCommand = (args, sourcePath) => {
   });
 };
 
-const runFFmpeg = async (sourcePath, targetPath, { preview }) => {
-  const args = buildFFmpegArgs(sourcePath, targetPath, { preview });
-  return runFFmpegCommand(args, sourcePath);
+const runFFmpeg = async (
+  sourcePath,
+  targetPath,
+  { preview, timeoutMs = null }
+) => {
+  const args = buildFFmpegArgs(sourcePath, targetPath, { preview, timeoutMs });
+  return runFFmpegCommand(args, sourcePath, timeoutMs);
 };
 
 module.exports = { runFFmpeg, EncodingError };

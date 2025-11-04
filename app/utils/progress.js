@@ -1,5 +1,6 @@
 const { execSync } = require("child_process");
 const logger = require("../services/logger");
+const { formatTimeout } = require("./timeout");
 
 // Parse ffmpeg progress from key-value format (from -progress option)
 const parseProgressKeyValue = (progressData) => {
@@ -123,15 +124,27 @@ const parseProgress = (stderr) => {
 };
 
 // Get video duration using ffprobe
-const getVideoDuration = (sourcePath) => {
+const getVideoDuration = (sourcePath, timeoutMs = null) => {
   try {
+    const options = { encoding: "utf8" };
+    if (timeoutMs) {
+      options.timeout = timeoutMs;
+    }
     const output = execSync(
       `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${sourcePath}"`,
-      { encoding: "utf8" }
+      options
     );
     return parseFloat(output.trim());
   } catch (error) {
-    logger.debug(`Failed to get duration for ${sourcePath}: ${error.message}`);
+    if (error.code === "TIMEOUT") {
+      logger.debug(
+        `Duration detection for ${sourcePath} timed out after ${formatTimeout(timeoutMs)}`
+      );
+    } else {
+      logger.debug(
+        `Failed to get duration for ${sourcePath}: ${error.message}`
+      );
+    }
     return null;
   }
 };
@@ -195,8 +208,8 @@ const clearProgress = () => {
 };
 
 // Create a progress tracker for ffmpeg encoding
-const createProgressTracker = (sourcePath) => {
-  const duration = getVideoDuration(sourcePath);
+const createProgressTracker = (sourcePath, timeoutMs = null) => {
+  const duration = getVideoDuration(sourcePath, timeoutMs);
   let lastProgressUpdate = 0;
   let lastProgressTime = 0; // Track the last progress time to avoid duplicate displays
 

@@ -13,7 +13,7 @@ const {
 
 module.exports = async (
   sourcePath,
-  { encodedSuffix, preview, deleteSource, workDir }
+  { encodedSuffix, preview, deleteSource, workDir, timeoutMs = null }
 ) => {
   const workDirSourcePath = path.join(workDir, path.basename(sourcePath));
 
@@ -49,6 +49,7 @@ module.exports = async (
   try {
     await runFFmpeg(effectiveSourcePath, effectiveWorkInProgressPath, {
       preview,
+      timeoutMs,
     });
 
     if (await fs.pathExists(effectiveTargetPath)) {

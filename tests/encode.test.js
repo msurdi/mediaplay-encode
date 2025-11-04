@@ -19,6 +19,8 @@ describe("Mediaplay encode", () => {
       expect(result.stdout).toContain(
         "Usage: mediaplay-encode [options] [path]"
       );
+      expect(result.stdout).toContain("-t, --timeout <timeout>");
+      expect(result.stdout).toContain("Timeout for ffmpeg/ffprobe commands");
     });
   });
 
@@ -39,6 +41,27 @@ describe("Mediaplay encode", () => {
     });
   });
 
+  describe("Encoding a valid path to mp4 with timeout", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      result = await cli(["ok", "--timeout", "30m"]);
+    });
+
+    it("Should keep original file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.mp4"))).toBe(true);
+    });
+
+    it("Should have generated an encoded file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4"))).toBe(
+        true
+      );
+    });
+
+    it("Should exit with status 0", async () => {
+      expect(result.code).toBe(0);
+    });
+  });
+
   describe("Encoding a valid path to mp4 through a temporary directory", () => {
     beforeAll(async () => {
       await cleanGeneratedFiles("ok");
@@ -52,6 +75,22 @@ describe("Mediaplay encode", () => {
     it("Should have generated an encoded file", async () => {
       expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4"))).toBe(
         true
+      );
+    });
+  });
+
+  describe("Invalid timeout format", () => {
+    beforeAll(async () => {
+      result = await cli(["ok", "--timeout", "invalid"]);
+    });
+
+    it("Should exit with error code", async () => {
+      expect(result.code).not.toBe(0);
+    });
+
+    it("Should show error message about invalid timeout format", async () => {
+      expect(result.stdout || result.stderr).toContain(
+        "Invalid timeout format"
       );
     });
   });
@@ -72,6 +111,27 @@ describe("Mediaplay encode", () => {
       expect(
         await fs.pathExists(fixturePath("uppercase/MOV_BBB.enc1.mp4"))
       ).toBe(true);
+    });
+  });
+
+  describe("Encoding with very short timeout", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      result = await cli(["ok", "--timeout", "1ms"]);
+    });
+
+    it("Should not exit with status 0 due to timeout", async () => {
+      expect(result.code).not.toBe(0);
+    });
+
+    it("Should have generated a failed file", async () => {
+      expect(
+        await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4.failed"))
+      ).toBe(true);
+    });
+
+    it("Should keep original file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.mp4"))).toBe(true);
     });
   });
 

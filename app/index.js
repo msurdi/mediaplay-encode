@@ -65,6 +65,11 @@ program
     "Process only one file and terminate, instead of processing all files",
     false
   )
+  .option(
+    "-t, --timeout <timeout>",
+    "Timeout for ffmpeg/ffprobe commands (e.g. '4h', '30m', '60s', '500ms')",
+    ""
+  )
   .parse(process.argv);
 
 const scanPath = program.args.length ? program.args[0] : defaultPath;
