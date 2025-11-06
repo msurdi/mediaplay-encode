@@ -34,17 +34,15 @@ module.exports = async ({
   const doesNotMatchExclusionPattern = (filePath) =>
     !matchesExclusionPattern(filePath);
 
-  const allFiles = await filesService.find(scanPath);
-  const allPaths = allFiles; // allFiles is now already an array of file paths
+  // Combined predicate that checks if a file should be encoded
+  const shouldEncode = async (filePath) => {
+    // First apply the quick filters
+    if (!isNotExcluded(filePath)) return false;
+    if (!isEncodeable(filePath)) return false;
+    if (!doesNotMatchExclusionPattern(filePath)) return false;
 
-  const filesToEncode = allPaths
-    .filter(isNotExcluded)
-    .filter(isEncodeable)
-    .filter(doesNotMatchExclusionPattern);
-
-  const candidateFilesToEncode = [];
-  for (const fileToEncode of filesToEncode) {
-    const targetPath = getTargetPathFromSourcePath(fileToEncode, encodedSuffix);
+    // Then check if the file can actually be processed (no target/failed/in-progress files exist)
+    const targetPath = getTargetPathFromSourcePath(filePath, encodedSuffix);
     const failedPath = getFailedPathFromTargetPath(targetPath);
     const inProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
 
@@ -52,19 +50,21 @@ module.exports = async ({
     const failedPathExists = await fs.exists(failedPath);
     const inProgressPathExists = await fs.exists(inProgressPath);
 
-    if (
-      ![targetPathExists, failedPathExists, inProgressPathExists].some(Boolean)
-    ) {
-      candidateFilesToEncode.push(fileToEncode);
-    }
+    return ![targetPathExists, failedPathExists, inProgressPathExists].some(
+      Boolean
+    );
+  };
+
+  logger.debug(`Searching for next file to encode in: ${scanPath}`);
+
+  // Use the new findFirst method to stop as soon as we find a matching file
+  const nextFile = await filesService.findFirst(scanPath, shouldEncode);
+
+  if (nextFile) {
+    logger.debug(`Found next file to encode: ${nextFile}`);
+  } else {
+    logger.debug("No files found to encode");
   }
 
-  logger.debug(`All files ${allPaths.join("\n")}`);
-  logger.debug(`Files to encode ${filesToEncode.join("\n")}`);
-
-  if (candidateFilesToEncode.length === 0) {
-    return null;
-  }
-
-  return candidateFilesToEncode[0];
+  return nextFile;
 };

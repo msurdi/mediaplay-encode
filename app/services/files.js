@@ -2,30 +2,44 @@ const fastGlob = require("fast-glob");
 const fs = require("fs-extra");
 const path = require("path");
 
-const find = async (scanDir) => {
+const findFirst = async (scanDir, predicate) => {
   const stats = await fs.stat(scanDir);
 
   if (stats.isFile()) {
-    // If scanDir is a specific file, return just that file
-    return [path.resolve(scanDir)];
+    const filePath = path.resolve(scanDir);
+    return (await predicate(filePath)) ? filePath : null;
   }
 
-  // If scanDir is a directory, scan recursively
-  const files = await fastGlob("**/*", {
+  const stream = fastGlob.stream("**/*", {
     cwd: scanDir,
     onlyFiles: true,
-    dot: false, // Exclude hidden files (starting with .)
+    dot: false,
     absolute: true,
     followSymbolicLinks: false,
   });
 
-  return files;
+  let found = null;
+  try {
+    for await (const file of stream) {
+      if (await predicate(file)) {
+        found = file;
+        // Stop the stream early
+        stream.destroy();
+        break;
+      }
+    }
+  } catch (err) {
+    // Ignore the expected ERR_STREAM_DESTROYED when we manually destroy
+    if (err.code !== "ERR_STREAM_DESTROYED") throw err;
+  }
+
+  return found;
 };
 
 const touch = async (filePath) => fs.writeFile(filePath, "");
 
 const filesService = {
-  find,
+  findFirst,
   touch,
 };
 
