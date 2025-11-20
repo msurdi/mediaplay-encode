@@ -137,6 +137,12 @@ const buildFFmpegArgs = (
       "0:a:0?",
       "-map",
       "0:v:0",
+      "-color_primaries",
+      "bt709",
+      "-color_trc",
+      "bt709",
+      "-colorspace",
+      "bt709",
       targetPath,
     ];
     return args;
