@@ -143,6 +143,8 @@ const buildFFmpegArgs = (
       "bt709",
       "-colorspace",
       "bt709",
+      "-fflags",
+      "+discardcorrupt",
       targetPath,
     ];
     return args;
