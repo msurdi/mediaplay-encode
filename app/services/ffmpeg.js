@@ -109,7 +109,6 @@ const buildFFmpegArgs = (
     return args;
   } else {
     // For non-AV1 files, do full encoding
-    logger.debug("Source is not AV1, performing full encoding");
     const args = [
       "-y",
       "-progress",
@@ -145,6 +144,8 @@ const buildFFmpegArgs = (
       "bt709",
       "-fflags",
       "+discardcorrupt",
+      "-err_detect",
+      "ignore_err",
       targetPath,
     ];
     return args;
