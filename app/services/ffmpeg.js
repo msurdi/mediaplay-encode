@@ -78,9 +78,10 @@ class EncodingError extends Error {
 const buildFFmpegArgs = (
   sourcePath,
   targetPath,
-  { preview, timeoutMs = null }
+  { preview, timeoutMs = null, progress = true }
 ) => {
   const isSourceAV1 = isAV1Encoded(sourcePath, timeoutMs);
+  const progressArgs = progress ? ["-progress", "pipe:1"] : ["-nostats"];
 
   if (isSourceAV1) {
     // For AV1 files, just copy streams and apply faststart
@@ -89,8 +90,7 @@ const buildFFmpegArgs = (
     );
     const args = [
       "-y",
-      "-progress",
-      "pipe:1", // Output progress to stdout in key-value format
+      ...progressArgs,
       "-i",
       sourcePath,
       ...(preview ? ["-t", "10"] : []),
@@ -111,8 +111,7 @@ const buildFFmpegArgs = (
     // For non-AV1 files, do full encoding
     const args = [
       "-y",
-      "-progress",
-      "pipe:1", // Output progress to stdout in key-value format
+      ...progressArgs,
       "-i",
       sourcePath,
       ...(preview ? ["-t", "10"] : []),
@@ -152,13 +151,20 @@ const buildFFmpegArgs = (
   }
 };
 
-const runFFmpegCommand = (args, sourcePath, timeoutMs = null) => {
+const runFFmpegCommand = (
+  args,
+  sourcePath,
+  { timeoutMs = null, progress = true } = {}
+) => {
   return new Promise((resolve, reject) => {
     const command = spawn("ffmpeg", args);
     let stdout = "";
     let stderr = "";
     let progressBuffer = "";
-    const progressTracker = createProgressTracker(sourcePath, timeoutMs);
+    const progressTracker = createProgressTracker(sourcePath, {
+      timeoutMs,
+      enabled: progress,
+    });
     let timeoutHandle = null;
 
     // Set up timeout if specified
@@ -256,10 +262,14 @@ const runFFmpegCommand = (args, sourcePath, timeoutMs = null) => {
 const runFFmpeg = async (
   sourcePath,
   targetPath,
-  { preview, timeoutMs = null }
+  { preview, timeoutMs = null, progress = true }
 ) => {
-  const args = buildFFmpegArgs(sourcePath, targetPath, { preview, timeoutMs });
-  return runFFmpegCommand(args, sourcePath, timeoutMs);
+  const args = buildFFmpegArgs(sourcePath, targetPath, {
+    preview,
+    timeoutMs,
+    progress,
+  });
+  return runFFmpegCommand(args, sourcePath, { timeoutMs, progress });
 };
 
 module.exports = { runFFmpeg, EncodingError };

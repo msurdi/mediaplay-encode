@@ -70,6 +70,7 @@ program
     "Timeout for ffmpeg/ffprobe commands (e.g. '4h', '30m', '60s', '500ms')",
     ""
   )
+  .option("-P, --no-progress", "Disable interactive encoding progress output")
   .parse(process.argv);
 
 const scanPath = program.args.length ? program.args[0] : defaultPath;

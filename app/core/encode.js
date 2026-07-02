@@ -18,6 +18,7 @@ const run = async (
     workDir,
     one,
     timeout,
+    progress,
   }
 ) => {
   if (debug) {
@@ -60,6 +61,7 @@ const run = async (
           deleteSource,
           workDir,
           timeoutMs,
+          progress,
         });
         filesEncoded++;
 

@@ -21,6 +21,7 @@ describe("Mediaplay encode", () => {
       );
       expect(result.stdout).toContain("-t, --timeout <timeout>");
       expect(result.stdout).toContain("Timeout for ffmpeg/ffprobe commands");
+      expect(result.stdout).toContain("-P, --no-progress");
     });
   });
 
@@ -59,6 +60,26 @@ describe("Mediaplay encode", () => {
 
     it("Should exit with status 0", async () => {
       expect(result.code).toBe(0);
+    });
+  });
+
+  describe("Encoding a valid path to mp4 without progress output", () => {
+    beforeAll(async () => {
+      await cleanGeneratedFiles("ok");
+      result = await cli(["ok", "-P"]);
+    });
+
+    it("Should have generated an encoded file", async () => {
+      expect(await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4"))).toBe(
+        true
+      );
+    });
+
+    it("Should not write interactive progress output", async () => {
+      expect(result.stdout).not.toContain("\r");
+      expect(result.stdout).not.toContain("Encoding completed successfully");
+      expect(result.stdout).not.toContain("█");
+      expect(result.stdout).not.toContain("░");
     });
   });
 

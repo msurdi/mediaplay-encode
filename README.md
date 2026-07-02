@@ -21,20 +21,16 @@ Usage: mediaplay-encode [options] [path]
 
 Options:
   -V, --version                           output the version number
-  -i, --high-quality                      Sacrifice cpu and/or disk space to get better quality
-                                          (default: false)
   --debug                                 Enable debug output
-  --delete-source                         Permanently removes source file after encoding (default:
-                                          false)
-  -p, --preview                           Encode only 10s, for previewing the result (default:
-                                          false)
-  -e, --extensions [extension...]         Comma separated list of extensions to encode from
-                                          (default:
-                                          "f4v,mov,flv,rm,avi,mkv,mp4,m4v,wmv,mpeg,asf,divx,mpg")
-  -x, --exclude-pattern <excludePattern>  Exclude files matching this regular expression (default:
-                                          "\\.enc")
-  -s, --encoded-suffix <suffix>           Add this suffix to the target file name (default: ".enc")
-  -l, --loop-interval <seconds>           When no files are found loop every <seconds> instead of
-                                          terminating (default: 0)
+  --delete-source                         Permanently removes source file after encoding (default: false)
+  -p, --preview                           Encode only 10s, for previewing the result (default: false)
+  -e, --extensions [extension...]         Comma separated list of extensions to encode from (default: "f4v,mov,flv,swf,rm,avi,mkv,mp4,m4v,wmv,mpeg,asf,divx,mpg,ts")
+  -x, --exclude-pattern <excludePattern>  Exclude files matching this regular expression (default: "\\.enc1\\.")
+  -s, --encoded-suffix <suffix>           Add this suffix to the target file name (default: ".enc1")
+  -l, --loop-interval <seconds>           When no files are found loop every <seconds> instead of terminating (default: 0)
+  -d, --work-dir <dir>                    Temporary work directory for encoding process (default: "")
+  -o, --one                               Process only one file and terminate, instead of processing all files (default: false)
+  -t, --timeout <timeout>                 Timeout for ffmpeg/ffprobe commands (e.g. '4h', '30m', '60s', '500ms') (default: "")
+  -P, --no-progress                       Disable interactive encoding progress output
   -h, --help                              display help for command
 ```

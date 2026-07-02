@@ -208,7 +208,26 @@ const clearProgress = () => {
 };
 
 // Create a progress tracker for ffmpeg encoding
-const createProgressTracker = (sourcePath, timeoutMs = null) => {
+const createNoopProgressTracker = () => ({
+  duration: null,
+  update() {},
+  updateKeyValue() {},
+  complete() {},
+  clear() {},
+});
+
+const createProgressTracker = (sourcePath, options = {}) => {
+  const normalizedOptions =
+    typeof options === "number" || options === null
+      ? { timeoutMs: options }
+      : options;
+  const { timeoutMs = null, enabled = true } = normalizedOptions;
+
+  if (!enabled) {
+    logger.debug(`Progress tracker disabled for ${sourcePath}`);
+    return createNoopProgressTracker();
+  }
+
   const duration = getVideoDuration(sourcePath, timeoutMs);
   let lastProgressUpdate = 0;
   let lastProgressTime = 0; // Track the last progress time to avoid duplicate displays
