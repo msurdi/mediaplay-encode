@@ -83,6 +83,11 @@ program
     "Age after which lock files are considered stale (e.g. '7d', '24h')",
     "7d"
   )
+  .option(
+    "--work-stale-timeout <timeout>",
+    "Age after which tmp/work files are considered stale (e.g. '7d', '24h')",
+    "7d"
+  )
   .parse(process.argv);
 
 const scanPath = program.args.length ? (program.args[0] ?? defaultPath) : defaultPath;

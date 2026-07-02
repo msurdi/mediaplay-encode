@@ -4,6 +4,7 @@ import {
   LockUnavailableError,
 } from "../services/locks.ts";
 import logger from "../services/logger.ts";
+import { cleanupStaleWorkFiles } from "../services/work-files.ts";
 import findNextFile from "./find-next-file.ts";
 import { sleepSeconds } from "../utils/time.ts";
 import { parseTimeout } from "../utils/timeout.ts";
@@ -23,6 +24,7 @@ export type EncodeOptions = {
   progress: boolean;
   lockDir: string;
   lockStaleTimeout: string;
+  workStaleTimeout: string;
 };
 
 export const run = async (
@@ -41,6 +43,7 @@ export const run = async (
     progress,
     lockDir,
     lockStaleTimeout,
+    workStaleTimeout,
   }: EncodeOptions,
 ): Promise<number> => {
   if (debug) {
@@ -91,6 +94,33 @@ export const run = async (
 
   const econdedExtension = "mp4";
   const suffixWithExtension = `${encodedSuffix}.${econdedExtension}`;
+
+  let workStaleTimeoutMs: number;
+  try {
+    workStaleTimeoutMs = parseTimeout(workStaleTimeout) ?? 7 * 24 * 60 * 60 * 1000;
+    logger.debug(
+      `Using stale work file timeout: ${workStaleTimeout} (${workStaleTimeoutMs}ms)`,
+    );
+  } catch (error) {
+    logger.error(
+      `Invalid work stale timeout format: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    process.exit(1);
+  }
+
+  const staleWorkFilesRemoved = await cleanupStaleWorkFiles({
+    scanPath,
+    encodedSuffix: suffixWithExtension,
+    workDir,
+    staleTimeoutMs: workStaleTimeoutMs,
+    lockDir,
+    lockStaleTimeoutMs,
+  });
+  if (staleWorkFilesRemoved) {
+    logger.info(`Removed ${staleWorkFilesRemoved} stale work file(s)`);
+  }
 
   while (true) {
     logger.info(`Finding files to encode at ${scanPath}`);

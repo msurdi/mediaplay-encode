@@ -10,6 +10,9 @@ import {
   type CliResult,
 } from "./utils.ts";
 
+const oldWorkFileDate = (): Date =>
+  new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+
 describe("Mediaplay encode", { timeout: 40000 }, () => {
   let result: CliResult;
 
@@ -225,7 +228,16 @@ describe("Mediaplay encode", { timeout: 40000 }, () => {
 
   describe("Passing a path with already in-progress files to encode", () => {
     before(async () => {
+      await fs.remove(fixturePath("in-progress/in-progress.enc1.mp4"));
+      await fs.outputFile(
+        fixturePath("in-progress/.in-progress.enc1.mp4.tmp"),
+        "An in-progress file\n",
+      );
       result = await cli(["in-progress"]);
+    });
+
+    after(async () => {
+      await fs.remove(fixturePath("in-progress/in-progress.enc1.mp4"));
     });
 
     it("Should have not generated a failure file", async () => {
@@ -250,6 +262,31 @@ describe("Mediaplay encode", { timeout: 40000 }, () => {
         "utf8",
       );
       assert.equal(contents, "An in-progress file\n");
+    });
+  });
+
+  describe("Passing a path with stale in-progress files to encode", () => {
+    before(async () => {
+      const staleTmpPath = fixturePath("ok/.mov_bbb.enc1.mp4.tmp");
+      await cleanGeneratedFiles("ok");
+      await fs.outputFile(staleTmpPath, "A stale in-progress file\n");
+      await fs.utimes(staleTmpPath, oldWorkFileDate(), oldWorkFileDate());
+      result = await cli(["ok"]);
+    });
+
+    after(async () => {
+      await cleanGeneratedFiles("ok");
+    });
+
+    it("Should remove the stale in-progress file and encode", async () => {
+      assert.equal(
+        await fs.pathExists(fixturePath("ok/.mov_bbb.enc1.mp4.tmp")),
+        false,
+      );
+      assert.equal(
+        await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4")),
+        true,
+      );
     });
   });
 

@@ -32,5 +32,8 @@ Options:
   -o, --one                               Process only one file and terminate, instead of processing all files (default: false)
   -t, --timeout <timeout>                 Timeout for ffmpeg/ffprobe commands (e.g. '4h', '30m', '60s', '500ms') (default: "")
   -P, --no-progress                       Disable interactive encoding progress output
+  --lock-dir <dir>                        Directory used to store encode lock files
+  --lock-stale-timeout <timeout>          Age after which lock files are considered stale (e.g. '7d', '24h') (default: "7d")
+  --work-stale-timeout <timeout>          Age after which tmp/work files are considered stale (e.g. '7d', '24h') (default: "7d")
   -h, --help                              display help for command
 ```
