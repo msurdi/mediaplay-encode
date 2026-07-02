@@ -309,6 +309,34 @@ describe("Mediaplay encode", { timeout: 40000 }, () => {
     });
   });
 
+  describe("Encoding failure with locks", () => {
+    let result: CliResult;
+    const lockDir = fixturePath("tmp-locks-invalid");
+
+    before(async () => {
+      await cleanGeneratedFiles("invalid");
+      await fs.remove(lockDir);
+      result = await cli(["-P", "--lock-dir", lockDir, "invalid"]);
+    });
+
+    after(async () => {
+      await fs.remove(lockDir);
+      await cleanGeneratedFiles("invalid");
+    });
+
+    it("Should fail encoding and leave a failed marker", async () => {
+      assert.notEqual(result.code, 0);
+      assert.equal(
+        await fs.pathExists(fixturePath("invalid/invalid.enc1.mp4.failed")),
+        true,
+      );
+    });
+
+    it("Should remove the lock after failure", async () => {
+      assert.deepEqual(await fs.readdir(lockDir), []);
+    });
+  });
+
   describe("Exit status when no files are found and looping is disabled", () => {
     before(async () => {
       await cleanGeneratedFiles("hidden");
@@ -441,6 +469,124 @@ describe("Mediaplay encode", { timeout: 40000 }, () => {
         file.includes(".enc1."),
       ).length;
       assert.equal(encodedCount, 1);
+    });
+  });
+
+  describe("Concurrent executions against the same file", () => {
+    let results: CliResult[];
+    const lockDir = fixturePath("tmp-locks-concurrent");
+
+    before(async () => {
+      await cleanGeneratedFiles("ok");
+      await fs.remove(lockDir);
+
+      results = await Promise.all([
+        cli(["-P", "--lock-dir", lockDir, "ok"]),
+        cli(["-P", "--lock-dir", lockDir, "ok"]),
+        cli(["-P", "--lock-dir", lockDir, "ok"]),
+      ]);
+    });
+
+    after(async () => {
+      await fs.remove(lockDir);
+      await cleanGeneratedFiles("ok");
+    });
+
+    it("Should have one successful encoder", async () => {
+      assert.equal(
+        results.filter((result) => result.code === 0).length,
+        1,
+      );
+    });
+
+    it("Should produce exactly one encoded file", async () => {
+      assert.equal(
+        await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4")),
+        true,
+      );
+    });
+
+    it("Should not leave race artifacts behind", async () => {
+      assert.equal(
+        await fs.pathExists(fixturePath("ok/mov_bbb.enc1.mp4.failed")),
+        false,
+      );
+      assert.equal(
+        await fs.pathExists(fixturePath("ok/.mov_bbb.enc1.mp4.tmp")),
+        false,
+      );
+      assert.deepEqual(await fs.readdir(lockDir), []);
+    });
+  });
+
+  describe("Concurrent executions with a shared work directory", () => {
+    let results: CliResult[];
+    const fixtureDir = fixturePath("same-basename");
+    const lockDir = fixturePath("tmp-locks-same-basename");
+    const workDir = fixturePath("tmp-work-same-basename");
+
+    before(async () => {
+      await fs.remove(fixtureDir);
+      await fs.remove(lockDir);
+      await fs.remove(workDir);
+      await fs.ensureDir(fixturePath("same-basename/a"));
+      await fs.ensureDir(fixturePath("same-basename/b"));
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("same-basename/a/movie.mp4"),
+      );
+      await fs.copyFile(
+        fixturePath("ok/mov_bbb.mp4"),
+        fixturePath("same-basename/b/movie.mp4"),
+      );
+
+      results = await Promise.all([
+        cli([
+          "-P",
+          "--lock-dir",
+          lockDir,
+          "--work-dir",
+          workDir,
+          "same-basename/a/movie.mp4",
+        ]),
+        cli([
+          "-P",
+          "--lock-dir",
+          lockDir,
+          "--work-dir",
+          workDir,
+          "same-basename/b/movie.mp4",
+        ]),
+      ]);
+    });
+
+    after(async () => {
+      await fs.remove(fixtureDir);
+      await fs.remove(lockDir);
+      await fs.remove(workDir);
+    });
+
+    it("Should allow both encoders to complete", async () => {
+      assert.deepEqual(
+        results.map((result) => result.code),
+        [0, 0],
+      );
+    });
+
+    it("Should encode both same-basename files", async () => {
+      assert.equal(
+        await fs.pathExists(fixturePath("same-basename/a/movie.enc1.mp4")),
+        true,
+      );
+      assert.equal(
+        await fs.pathExists(fixturePath("same-basename/b/movie.enc1.mp4")),
+        true,
+      );
+    });
+
+    it("Should not leave work or lock files behind", async () => {
+      assert.deepEqual(await fs.readdir(workDir), []);
+      assert.deepEqual(await fs.readdir(lockDir), []);
     });
   });
 

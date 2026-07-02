@@ -1,6 +1,7 @@
 import { program } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { run, type EncodeOptions } from "./core/encode.ts";
+import { getDefaultLockDir } from "./services/locks.ts";
 
 const defaultPath = process.cwd();
 
@@ -72,6 +73,16 @@ program
     ""
   )
   .option("-P, --no-progress", "Disable interactive encoding progress output")
+  .option(
+    "--lock-dir <dir>",
+    "Directory used to store encode lock files",
+    getDefaultLockDir()
+  )
+  .option(
+    "--lock-stale-timeout <timeout>",
+    "Age after which lock files are considered stale (e.g. '7d', '24h')",
+    "7d"
+  )
   .parse(process.argv);
 
 const scanPath = program.args.length ? (program.args[0] ?? defaultPath) : defaultPath;

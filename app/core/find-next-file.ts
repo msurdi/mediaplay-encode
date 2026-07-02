@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 import filesService from "../services/files.ts";
+import { getLockPath, isLocked } from "../services/locks.ts";
 import logger from "../services/logger.ts";
 
 import {
@@ -15,6 +16,8 @@ type FindNextFileOptions = {
   extensions: string;
   scanPath: string;
   encodedSuffix: string;
+  lockDir: string;
+  lockStaleTimeoutMs: number;
 };
 
 const fileExtension = (filePath: string): string =>
@@ -26,6 +29,8 @@ const findNextFile = async ({
   extensions,
   scanPath,
   encodedSuffix,
+  lockDir,
+  lockStaleTimeoutMs,
 }: FindNextFileOptions): Promise<string | null> => {
   const isNotExcluded = (filePath: string): boolean =>
     !exclude.includes(filePath);
@@ -56,14 +61,19 @@ const findNextFile = async ({
     const targetPath = getTargetPathFromSourcePath(filePath, encodedSuffix);
     const failedPath = getFailedPathFromTargetPath(targetPath);
     const inProgressPath = getWorkInProgressPathFromTargetPath(targetPath);
+    const lockPath = getLockPath(targetPath, lockDir);
 
-    const targetPathExists = await fs.exists(targetPath);
-    const failedPathExists = await fs.exists(failedPath);
-    const inProgressPathExists = await fs.exists(inProgressPath);
+    const targetPathExists = await fs.pathExists(targetPath);
+    const failedPathExists = await fs.pathExists(failedPath);
+    const inProgressPathExists = await fs.pathExists(inProgressPath);
+    const lockPathExists = await isLocked(lockPath, lockStaleTimeoutMs);
 
-    return ![targetPathExists, failedPathExists, inProgressPathExists].some(
-      Boolean
-    );
+    return ![
+      targetPathExists,
+      failedPathExists,
+      inProgressPathExists,
+      lockPathExists,
+    ].some(Boolean);
   };
 
   logger.debug(`Searching for next file to encode in: ${scanPath}`);

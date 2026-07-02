@@ -1,9 +1,13 @@
 import { EncodingError } from "../services/ffmpeg.ts";
+import {
+  cleanupStaleLocks,
+  LockUnavailableError,
+} from "../services/locks.ts";
 import logger from "../services/logger.ts";
 import findNextFile from "./find-next-file.ts";
 import { sleepSeconds } from "../utils/time.ts";
 import { parseTimeout } from "../utils/timeout.ts";
-import processFile from "./process-file.ts";
+import processFile, { FileUnavailableError } from "./process-file.ts";
 
 export type EncodeOptions = {
   extensions: string;
@@ -17,6 +21,8 @@ export type EncodeOptions = {
   one: boolean;
   timeout: string;
   progress: boolean;
+  lockDir: string;
+  lockStaleTimeout: string;
 };
 
 export const run = async (
@@ -33,6 +39,8 @@ export const run = async (
     one,
     timeout,
     progress,
+    lockDir,
+    lockStaleTimeout,
   }: EncodeOptions,
 ): Promise<number> => {
   if (debug) {
@@ -55,6 +63,29 @@ export const run = async (
     }
   }
 
+  let lockStaleTimeoutMs: number;
+  try {
+    lockStaleTimeoutMs = parseTimeout(lockStaleTimeout) ?? 7 * 24 * 60 * 60 * 1000;
+    logger.debug(
+      `Using stale lock timeout: ${lockStaleTimeout} (${lockStaleTimeoutMs}ms)`,
+    );
+  } catch (error) {
+    logger.error(
+      `Invalid lock stale timeout format: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    process.exit(1);
+  }
+
+  const staleLocksRemoved = await cleanupStaleLocks(
+    lockDir,
+    lockStaleTimeoutMs,
+  );
+  if (staleLocksRemoved) {
+    logger.info(`Removed ${staleLocksRemoved} stale lock file(s)`);
+  }
+
   const failedFiles: string[] = [];
   let filesEncoded = 0;
 
@@ -69,6 +100,8 @@ export const run = async (
       scanPath,
       encodedSuffix: suffixWithExtension,
       extensions,
+      lockDir,
+      lockStaleTimeoutMs,
     });
 
     if (nextFile) {
@@ -80,6 +113,8 @@ export const run = async (
           workDir,
           timeoutMs,
           progress,
+          lockDir,
+          lockStaleTimeoutMs,
         });
         filesEncoded++;
 
@@ -88,7 +123,12 @@ export const run = async (
           break;
         }
       } catch (error) {
-        if (error instanceof EncodingError) {
+        if (
+          error instanceof LockUnavailableError ||
+          error instanceof FileUnavailableError
+        ) {
+          logger.debug(error.message);
+        } else if (error instanceof EncodingError) {
           failedFiles.push(nextFile);
         } else {
           throw error;
