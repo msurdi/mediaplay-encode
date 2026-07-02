@@ -1,6 +1,6 @@
-const { describe, it } = require("node:test");
-const assert = require("node:assert/strict");
-const { parseTimeout, formatTimeout } = require("./timeout");
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { parseTimeout, formatTimeout } from "./timeout.ts";
 
 describe("timeout utility", () => {
   describe("parseTimeout", () => {

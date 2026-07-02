@@ -1,18 +1,27 @@
-const fs = require("fs-extra");
-const path = require("path");
-const filesService = require("../services/files");
-const { runFFmpeg } = require("../services/ffmpeg");
-const logger = require("../services/logger");
-const size = require("../utils/size");
+import fs from "fs-extra";
+import path from "node:path";
+import filesService from "../services/files.ts";
+import { runFFmpeg } from "../services/ffmpeg.ts";
+import logger from "../services/logger.ts";
+import size from "../utils/size.ts";
 
-const {
+import {
   getFailedPathFromTargetPath,
   getTargetPathFromSourcePath,
   getWorkInProgressPathFromTargetPath,
-} = require("../utils/path");
+} from "../utils/path.ts";
 
-module.exports = async (
-  sourcePath,
+type ProcessFileOptions = {
+  encodedSuffix: string;
+  preview: boolean;
+  deleteSource: boolean;
+  workDir: string;
+  timeoutMs?: number | null;
+  progress?: boolean;
+};
+
+const processFile = async (
+  sourcePath: string,
   {
     encodedSuffix,
     preview,
@@ -20,8 +29,8 @@ module.exports = async (
     workDir,
     timeoutMs = null,
     progress = true,
-  }
-) => {
+  }: ProcessFileOptions,
+): Promise<void> => {
   const workDirSourcePath = path.join(workDir, path.basename(sourcePath));
 
   if (workDir) {
@@ -76,7 +85,9 @@ module.exports = async (
         await fs.move(effectiveWorkInProgressPath, failedPath);
       } catch (moveError) {
         logger.error(
-          `Could not move ${effectiveWorkInProgressPath} to ${failedPath}: ${moveError}`
+          `Could not move ${effectiveWorkInProgressPath} to ${failedPath}: ${
+            moveError instanceof Error ? moveError.message : String(moveError)
+          }`,
         );
       }
     } else {
@@ -112,3 +123,5 @@ module.exports = async (
     await fs.remove(sourcePath);
   }
 };
+
+export default processFile;

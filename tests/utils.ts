@@ -1,22 +1,32 @@
-const path = require("path");
-const fs = require("fs-extra");
-const { exec } = require("child_process");
+import { exec } from "node:child_process";
+import path from "node:path";
+import fs from "fs-extra";
+import findRoot from "find-root";
 
-const findRoot = require("find-root");
+export type CliResult = {
+  code: number | string;
+  error: Error | null;
+  stdout: string;
+  stderr: string;
+};
 
-const projectRoot = findRoot(__dirname);
+const projectRoot = findRoot(import.meta.dirname);
 
 const fixtuesRoot = path.join(projectRoot, "tests/fixtures");
 
-const binPath = path.join(projectRoot, "bin", "mediaplay-encode.js");
+export const binPath = path.join(projectRoot, "bin", "mediaplay-encode.ts");
 
-const fixturePath = (fileName) => path.resolve(fixtuesRoot, fileName);
+export const fixturePath = (fileName: string): string =>
+  path.resolve(fixtuesRoot, fileName);
 
-const cli = (args, cwd = fixturePath(".")) =>
+export const cli = (
+  args: string[],
+  cwd = fixturePath("."),
+): Promise<CliResult> =>
   new Promise((resolve) => {
     exec(`${binPath} ${args.join(" ")}`, { cwd }, (error, stdout, stderr) => {
       resolve({
-        code: error && error.code ? error.code : 0,
+        code: error?.code ? error.code : 0,
         error,
         stdout,
         stderr,
@@ -24,7 +34,7 @@ const cli = (args, cwd = fixturePath(".")) =>
     });
   });
 
-const cleanGeneratedFiles = async (fixtureDir = ".") => {
+export const cleanGeneratedFiles = async (fixtureDir = "."): Promise<void> => {
   const cleanTargetDir = fixturePath(fixtureDir);
   const fileNames = await fs.readdir(cleanTargetDir);
   const filesToDelete = fileNames
@@ -40,10 +50,4 @@ const cleanGeneratedFiles = async (fixtureDir = ".") => {
   for (const fileToDelete of filesToDelete) {
     await fs.remove(fileToDelete);
   }
-};
-
-module.exports = {
-  cli,
-  fixturePath,
-  cleanGeneratedFiles,
 };

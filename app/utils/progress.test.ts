@@ -1,23 +1,27 @@
-const { describe, it, beforeEach, afterEach, mock } = require("node:test");
-const assert = require("node:assert/strict");
-const {
+import { describe, it, beforeEach, afterEach, mock } from "node:test";
+import assert from "node:assert/strict";
+import {
   parseProgress,
   parseProgressKeyValue,
   displayProgress,
   clearProgress,
   createProgressTracker,
-} = require("./progress");
+  type Progress,
+} from "./progress.ts";
 
 // Mock console.log and process.stdout.write for testing
 let mockOutput = "";
+let writeCalls = 0;
 
 beforeEach(() => {
   mockOutput = "";
-  mock.method(process.stdout, "write", (data) => {
-    mockOutput += data;
+  writeCalls = 0;
+  mock.method(process.stdout, "write", (data: string | Uint8Array) => {
+    writeCalls++;
+    mockOutput += data.toString();
     return true;
   });
-  mock.method(console, "log", (data) => {
+  mock.method(console, "log", (data: string) => {
     mockOutput += `${data}\n`;
   });
 });
@@ -141,7 +145,7 @@ speed= 1.5x
 
   describe("displayProgress", () => {
     it("should display progress without duration", () => {
-      const progress = {
+      const progress: Progress = {
         time: 125,
         frame: 300,
         fps: 29.5,
@@ -159,7 +163,7 @@ speed= 1.5x
     });
 
     it("should display progress with duration and percentage", () => {
-      const progress = {
+      const progress: Progress = {
         time: 60,
         frame: 300,
         fps: 30,
@@ -178,7 +182,7 @@ speed= 1.5x
     });
 
     it("should handle small file sizes in kB", () => {
-      const progress = {
+      const progress: Progress = {
         time: 5,
         frame: 150,
         fps: 30,
@@ -193,13 +197,13 @@ speed= 1.5x
     });
 
     it("should not display anything when progress has no time or frame", () => {
-      const progress = {}; // Empty progress object
+      const progress: Progress = {}; // Empty progress object
       displayProgress(progress, 120);
       assert.equal(mockOutput, "");
     });
 
     it("should display frame-based progress when no time is available", () => {
-      const progress = { frame: 100, fps: 30, speed: 1.5 };
+      const progress: Progress = { frame: 100, fps: 30, speed: 1.5 };
       displayProgress(progress, 120);
       assert.ok(mockOutput.includes("🎬 Frame 100"));
       assert.ok(mockOutput.includes("30.0fps"));
@@ -210,7 +214,7 @@ speed= 1.5x
   describe("clearProgress", () => {
     it("should clear the progress line", () => {
       clearProgress();
-      assert.ok(process.stdout.write.mock.calls.length > 0);
+      assert.ok(writeCalls > 0);
       assert.ok(mockOutput.includes("\r"));
     });
   });

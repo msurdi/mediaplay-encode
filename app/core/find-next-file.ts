@@ -1,41 +1,52 @@
-const path = require("path");
-const fs = require("fs-extra");
-const filesService = require("../services/files");
-const logger = require("../services/logger");
+import path from "node:path";
+import fs from "fs-extra";
+import filesService from "../services/files.ts";
+import logger from "../services/logger.ts";
 
-const fileExtension = (filePath) => path.extname(filePath).replace(".", "");
-
-const {
+import {
   getFailedPathFromTargetPath,
   getTargetPathFromSourcePath,
   getWorkInProgressPathFromTargetPath,
-} = require("../utils/path");
+} from "../utils/path.ts";
 
-module.exports = async ({
+type FindNextFileOptions = {
+  exclude?: string[];
+  excludePattern: string;
+  extensions: string;
+  scanPath: string;
+  encodedSuffix: string;
+};
+
+const fileExtension = (filePath: string): string =>
+  path.extname(filePath).replace(".", "");
+
+const findNextFile = async ({
   exclude = [],
   excludePattern,
   extensions,
   scanPath,
   encodedSuffix,
-}) => {
-  const isNotExcluded = (filePath) => !exclude.includes(filePath);
+}: FindNextFileOptions): Promise<string | null> => {
+  const isNotExcluded = (filePath: string): boolean =>
+    !exclude.includes(filePath);
 
   const caseInsensitiveExtensions = extensions
     .split(",")
     .map((extension) => extension.toLowerCase());
 
-  const isEncodeable = (filePath) => {
+  const isEncodeable = (filePath: string): boolean => {
     const extension = fileExtension(filePath).toLowerCase();
-    return extension && caseInsensitiveExtensions.includes(extension);
+    return Boolean(extension && caseInsensitiveExtensions.includes(extension));
   };
 
-  const matchesExclusionPattern = (filePath) => filePath.match(excludePattern);
+  const matchesExclusionPattern = (filePath: string): RegExpMatchArray | null =>
+    filePath.match(excludePattern);
 
-  const doesNotMatchExclusionPattern = (filePath) =>
+  const doesNotMatchExclusionPattern = (filePath: string): boolean =>
     !matchesExclusionPattern(filePath);
 
   // Combined predicate that checks if a file should be encoded
-  const shouldEncode = async (filePath) => {
+  const shouldEncode = async (filePath: string): Promise<boolean> => {
     // First apply the quick filters
     if (!isNotExcluded(filePath)) return false;
     if (!isEncodeable(filePath)) return false;
@@ -68,3 +79,5 @@ module.exports = async ({
 
   return nextFile;
 };
+
+export default findNextFile;

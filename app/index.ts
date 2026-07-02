@@ -1,6 +1,6 @@
-const { program } = require("commander");
-const packageJson = require("../package.json");
-const encode = require("./core/encode");
+import { program } from "commander";
+import packageJson from "../package.json" with { type: "json" };
+import { run, type EncodeOptions } from "./core/encode.ts";
 
 const defaultPath = process.cwd();
 
@@ -53,7 +53,8 @@ program
   .option(
     "-l, --loop-interval <seconds>",
     "When no files are found loop every <seconds> instead of terminating",
-    0
+    (value) => Number(value),
+    0,
   )
   .option(
     "-d, --work-dir <dir>",
@@ -73,14 +74,16 @@ program
   .option("-P, --no-progress", "Disable interactive encoding progress output")
   .parse(process.argv);
 
-const scanPath = program.args.length ? program.args[0] : defaultPath;
+const scanPath = program.args.length ? (program.args[0] ?? defaultPath) : defaultPath;
 
-module.exports = async () => {
-  const filesEncoded = await encode.run(scanPath, program.opts());
-  const options = program.opts();
+const app = async (): Promise<void> => {
+  const options = program.opts<EncodeOptions>();
+  const filesEncoded = await run(scanPath, options);
 
   // If looping is disabled and no files were encoded, exit with status 1
   if (!options.loopInterval && filesEncoded === 0) {
     process.exit(1);
   }
 };
+
+export default app;

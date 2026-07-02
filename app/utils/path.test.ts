@@ -1,7 +1,7 @@
-const { describe, it } = require("node:test");
-const assert = require("node:assert/strict");
-const path = require("path");
-const pathUtils = require("./path");
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import path from "node:path";
+import * as pathUtils from "./path.ts";
 
 /*
 Source path: Original file name or path

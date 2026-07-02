@@ -1,10 +1,10 @@
-const { describe, it } = require("node:test");
-const assert = require("node:assert/strict");
-const path = require("path");
-const size = require("./size");
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import path from "node:path";
+import size from "./size.ts";
 
 const TEST_FILE_PATH = path.join(
-  __dirname,
+  import.meta.dirname,
   "../../tests/fixtures/ok/mov_bbb.mp4",
 );
 

@@ -1,10 +1,17 @@
-const { describe, it, before, after } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("fs-extra");
-const { cli, fixturePath, cleanGeneratedFiles } = require("./utils");
+import { exec } from "node:child_process";
+import { describe, it, before, after } from "node:test";
+import assert from "node:assert/strict";
+import fs from "fs-extra";
+import {
+  binPath,
+  cli,
+  fixturePath,
+  cleanGeneratedFiles,
+  type CliResult,
+} from "./utils.ts";
 
 describe("Mediaplay encode", { timeout: 40000 }, () => {
-  let result;
+  let result: CliResult;
 
   describe("Printing help", () => {
     before(async () => {
@@ -442,14 +449,13 @@ describe("Mediaplay encode", { timeout: 40000 }, () => {
       await cleanGeneratedFiles("hidden");
       // Test with loop interval of 1 second, but we'll kill it quickly
       // Since this would run indefinitely, we need to handle it differently
-      result = await new Promise((resolve) => {
-        const { exec } = require("child_process");
+      result = await new Promise<CliResult>((resolve) => {
         const child = exec(
-          `${require("path").join(__dirname, "../bin/mediaplay-encode.js")} --loop-interval 1 hidden`,
+          `${binPath} --loop-interval 1 hidden`,
           { cwd: fixturePath(".") },
           (error, stdout, stderr) => {
             resolve({
-              code: error && error.code ? error.code : 0,
+              code: error?.code ? error.code : 0,
               error,
               stdout,
               stderr,

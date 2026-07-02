@@ -1,4 +1,4 @@
-const parseTimeout = (timeoutStr) => {
+export const parseTimeout = (timeoutStr: unknown): number | null => {
   if (!timeoutStr || typeof timeoutStr !== "string") {
     return null;
   }
@@ -17,7 +17,7 @@ const parseTimeout = (timeoutStr) => {
     );
   }
 
-  const [, numberStr, unit] = match;
+  const [, numberStr = "", unit = ""] = match;
   const number = parseFloat(numberStr);
 
   if (number <= 0) {
@@ -45,7 +45,7 @@ const parseTimeout = (timeoutStr) => {
   }
 };
 
-const formatTimeout = (timeoutMs) => {
+export const formatTimeout = (timeoutMs: number | null | undefined): string => {
   if (!timeoutMs || timeoutMs <= 0) {
     return "no timeout";
   }
@@ -67,5 +67,3 @@ const formatTimeout = (timeoutMs) => {
     return `${timeoutMs.toFixed(1)}ms`;
   }
 };
-
-module.exports = { parseTimeout, formatTimeout };

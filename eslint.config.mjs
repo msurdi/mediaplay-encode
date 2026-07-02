@@ -1,29 +1,31 @@
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
+import tseslint from "typescript-eslint";
 
 export default [
-  // Global ignores
   {
     ignores: ["node_modules/**", "coverage/**", "*.tgz", ".*.js"],
   },
 
-  // Apply to all JavaScript files
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+
   {
-    files: ["**/*.js"],
+    files: ["**/*.{js,mjs,ts}"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ["eslint.config.mjs"],
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
       globals: {
-        // Node.js globals
         Buffer: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
         console: "readonly",
-        exports: "readonly",
         global: "readonly",
-        module: "readonly",
         process: "readonly",
-        require: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
         setInterval: "readonly",
@@ -33,10 +35,6 @@ export default [
       },
     },
     rules: {
-      // Use ESLint's recommended rules
-      ...js.configs.recommended.rules,
-
-      // Custom rules from your original config
       "no-await-in-loop": "off",
       "no-restricted-syntax": "off",
       "no-constant-condition": "off",
@@ -50,6 +48,15 @@ export default [
       "template-curly-spacing": "error",
       "arrow-spacing": "error",
       "no-duplicate-imports": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
+
+  {
+    files: ["**/*.test.ts"],
+    rules: {
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/require-await": "off",
     },
   },
 
