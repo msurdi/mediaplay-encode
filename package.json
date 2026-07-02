@@ -3,8 +3,10 @@
   "version": "1.5.0",
   "description": "",
   "type": "module",
-  "main": "./app/index.ts",
+  "main": "./dist/app/index.js",
   "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
     "test": "run-s test:lint test:type test:unit test:integration",
     "test:lint": "eslint .",
     "test:type": "tsc --noEmit",
@@ -14,7 +16,7 @@
     "test:integration:watch": "node --test --watch \"tests/*.test.ts\""
   },
   "bin": {
-    "mediaplay-encode": "bin/mediaplay-encode.ts"
+    "mediaplay-encode": "dist/bin/mediaplay-encode.js"
   },
   "author": {
     "name": "Matías Surdi",
@@ -31,8 +33,7 @@
     "npm": ">=11.10.0"
   },
   "files": [
-    "app/**",
-    "bin/**"
+    "dist/**"
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
