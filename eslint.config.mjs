@@ -1,5 +1,4 @@
 import js from "@eslint/js";
-import jest from "eslint-plugin-jest";
 import prettier from "eslint-config-prettier";
 
 export default [
@@ -51,22 +50,6 @@ export default [
       "template-curly-spacing": "error",
       "arrow-spacing": "error",
       "no-duplicate-imports": "error",
-    },
-  },
-
-  // Jest configuration for test files
-  {
-    files: ["**/*.test.js", "**/tests/**/*.js"],
-    plugins: {
-      jest,
-    },
-    languageOptions: {
-      globals: {
-        ...jest.environments.globals.globals,
-      },
-    },
-    rules: {
-      ...jest.configs.recommended.rules,
     },
   },
 

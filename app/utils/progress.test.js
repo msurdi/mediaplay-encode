@@ -1,3 +1,5 @@
+const { describe, it, beforeEach, afterEach, mock } = require("node:test");
+const assert = require("node:assert/strict");
 const {
   parseProgress,
   parseProgressKeyValue,
@@ -7,24 +9,21 @@ const {
 } = require("./progress");
 
 // Mock console.log and process.stdout.write for testing
-const originalWrite = process.stdout.write;
-const originalLog = console.log;
 let mockOutput = "";
 
 beforeEach(() => {
   mockOutput = "";
-  process.stdout.write = jest.fn((data) => {
+  mock.method(process.stdout, "write", (data) => {
     mockOutput += data;
     return true;
   });
-  console.log = jest.fn((data) => {
+  mock.method(console, "log", (data) => {
     mockOutput += `${data}\n`;
   });
 });
 
 afterEach(() => {
-  process.stdout.write = originalWrite;
-  console.log = originalLog;
+  mock.restoreAll();
 });
 
 describe("progress utility", () => {
@@ -37,7 +36,7 @@ frame=  300 fps= 29 q=-0.0 size=    2048kB time=00:00:10.50 bitrate=1596.1kbits/
 
       const progress = parseProgress(stderr);
 
-      expect(progress).toEqual({
+      assert.deepEqual(progress, {
         time: 10,
         frame: 300,
         fps: 29,
@@ -50,7 +49,7 @@ frame=  300 fps= 29 q=-0.0 size=    2048kB time=00:00:10.50 bitrate=1596.1kbits/
     it("should return empty object when no progress found", () => {
       const stderr = "Some random ffmpeg output without progress";
       const progress = parseProgress(stderr);
-      expect(progress).toEqual({});
+      assert.deepEqual(progress, {});
     });
 
     it("should handle corrupted frame output (ame= instead of frame=)", () => {
@@ -61,7 +60,7 @@ Output #0, mp4, to '/path/to/file.mp4':
 
       const progress = parseProgress(stderr);
 
-      expect(progress).toEqual({
+      assert.deepEqual(progress, {
         time: 12,
         frame: 302,
         fps: 100,
@@ -85,7 +84,7 @@ progress=continue
 
       const progress = parseProgressKeyValue(progressData);
 
-      expect(progress).toEqual({
+      assert.deepEqual(progress, {
         time: 10, // 10.5 seconds floored to 10
         frame: 300,
         fps: 29.5,
@@ -104,7 +103,7 @@ speed= 2.0x
 
       const progress = parseProgressKeyValue(progressData);
 
-      expect(progress).toEqual({
+      assert.deepEqual(progress, {
         time: 5,
         frame: 150,
         fps: 0,
@@ -117,7 +116,7 @@ speed= 2.0x
     it("should return empty object when no valid data found", () => {
       const progressData = "Some random ffmpeg output without key=value pairs";
       const progress = parseProgressKeyValue(progressData);
-      expect(progress).toEqual({});
+      assert.deepEqual(progress, {});
     });
 
     it("should handle longer duration formatting", () => {
@@ -129,7 +128,7 @@ speed= 1.5x
 
       const progress = parseProgressKeyValue(progressData);
 
-      expect(progress).toEqual({
+      assert.deepEqual(progress, {
         time: 3661,
         frame: 7200,
         fps: 0,
@@ -153,10 +152,10 @@ speed= 1.5x
 
       displayProgress(progress, null);
 
-      expect(mockOutput).toContain("⏱️  00:02:05");
-      expect(mockOutput).toContain("29.5fps");
-      expect(mockOutput).toContain("1.1x");
-      expect(mockOutput).toContain("2.0MB");
+      assert.ok(mockOutput.includes("⏱️  00:02:05"));
+      assert.ok(mockOutput.includes("29.5fps"));
+      assert.ok(mockOutput.includes("1.1x"));
+      assert.ok(mockOutput.includes("2.0MB"));
     });
 
     it("should display progress with duration and percentage", () => {
@@ -172,10 +171,10 @@ speed= 1.5x
 
       displayProgress(progress, duration);
 
-      expect(mockOutput).toContain("⏱️  00:01:00");
-      expect(mockOutput).toContain("50.0%"); // 60/120 * 100
-      expect(mockOutput).toContain("█"); // Progress bar should contain filled blocks
-      expect(mockOutput).toContain("░"); // Progress bar should contain empty blocks
+      assert.ok(mockOutput.includes("⏱️  00:01:00"));
+      assert.ok(mockOutput.includes("50.0%")); // 60/120 * 100
+      assert.ok(mockOutput.includes("█")); // Progress bar should contain filled blocks
+      assert.ok(mockOutput.includes("░")); // Progress bar should contain empty blocks
     });
 
     it("should handle small file sizes in kB", () => {
@@ -190,29 +189,29 @@ speed= 1.5x
 
       displayProgress(progress, null);
 
-      expect(mockOutput).toContain("512kB");
+      assert.ok(mockOutput.includes("512kB"));
     });
 
     it("should not display anything when progress has no time or frame", () => {
       const progress = {}; // Empty progress object
       displayProgress(progress, 120);
-      expect(mockOutput).toBe("");
+      assert.equal(mockOutput, "");
     });
 
     it("should display frame-based progress when no time is available", () => {
       const progress = { frame: 100, fps: 30, speed: 1.5 };
       displayProgress(progress, 120);
-      expect(mockOutput).toContain("🎬 Frame 100");
-      expect(mockOutput).toContain("30.0fps");
-      expect(mockOutput).toContain("1.5x");
+      assert.ok(mockOutput.includes("🎬 Frame 100"));
+      assert.ok(mockOutput.includes("30.0fps"));
+      assert.ok(mockOutput.includes("1.5x"));
     });
   });
 
   describe("clearProgress", () => {
     it("should clear the progress line", () => {
       clearProgress();
-      expect(process.stdout.write).toHaveBeenCalled();
-      expect(mockOutput).toContain("\r");
+      assert.ok(process.stdout.write.mock.calls.length > 0);
+      assert.ok(mockOutput.includes("\r"));
     });
   });
 
@@ -220,22 +219,22 @@ speed= 1.5x
     it("should create a progress tracker with update, updateKeyValue, complete, and clear methods", () => {
       const tracker = createProgressTracker("/fake/video.mp4");
 
-      expect(tracker).toHaveProperty("update");
-      expect(tracker).toHaveProperty("updateKeyValue");
-      expect(tracker).toHaveProperty("complete");
-      expect(tracker).toHaveProperty("clear");
-      expect(tracker).toHaveProperty("duration");
-      expect(typeof tracker.update).toBe("function");
-      expect(typeof tracker.updateKeyValue).toBe("function");
-      expect(typeof tracker.complete).toBe("function");
-      expect(typeof tracker.clear).toBe("function");
+      assert.ok("update" in tracker);
+      assert.ok("updateKeyValue" in tracker);
+      assert.ok("complete" in tracker);
+      assert.ok("clear" in tracker);
+      assert.ok("duration" in tracker);
+      assert.equal(typeof tracker.update, "function");
+      assert.equal(typeof tracker.updateKeyValue, "function");
+      assert.equal(typeof tracker.complete, "function");
+      assert.equal(typeof tracker.clear, "function");
     });
 
     it("should show completion message when complete() is called", () => {
       const tracker = createProgressTracker("/fake/video.mp4");
       tracker.complete();
 
-      expect(mockOutput).toContain("✅ Encoding completed successfully");
+      assert.ok(mockOutput.includes("✅ Encoding completed successfully"));
     });
 
     it("should handle key-value progress updates", () => {
@@ -245,7 +244,7 @@ speed= 1.5x
       tracker.updateKeyValue(progressData);
 
       // Since we don't have a real duration, it should still display basic progress
-      expect(mockOutput).toContain("⏱️  00:00:05");
+      assert.ok(mockOutput.includes("⏱️  00:00:05"));
     });
   });
 });

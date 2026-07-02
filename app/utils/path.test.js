@@ -1,3 +1,5 @@
+const { describe, it } = require("node:test");
+const assert = require("node:assert/strict");
 const path = require("path");
 const pathUtils = require("./path");
 
@@ -12,26 +14,26 @@ describe("Path utils", () => {
   describe("Failed paths and file names", () => {
     it("Creates correct failed path from a relative target path", () => {
       const failedPath = pathUtils.getFailedPathFromTargetPath("some/test.mp4");
-      expect(failedPath).toEqual("some/test.mp4.failed");
+      assert.equal(failedPath, "some/test.mp4.failed");
     });
 
     it("Creates correct failed path from a file name", () => {
       const failedPath = pathUtils.getFailedPathFromTargetPath("test.mp4");
-      expect(failedPath).toEqual("test.mp4.failed");
+      assert.equal(failedPath, "test.mp4.failed");
     });
 
     it("Creates correct failed path from am absolute path", () => {
       const failedPath = pathUtils.getFailedPathFromTargetPath(
-        "/some/absolute/test.mp4"
+        "/some/absolute/test.mp4",
       );
-      expect(failedPath).toEqual("/some/absolute/test.mp4.failed");
+      assert.equal(failedPath, "/some/absolute/test.mp4.failed");
     });
 
     it("Does not create file names longer than 255 characters", () => {
       const failedPath = pathUtils.getFailedPathFromTargetPath(
-        path.join("/some/absolute", "test.mp4".repeat(200))
+        path.join("/some/absolute", "test.mp4".repeat(200)),
       );
-      expect(path.basename(failedPath).length).toBeLessThanOrEqual(255);
+      assert.ok(path.basename(failedPath).length <= 255);
     });
   });
 
@@ -39,33 +41,33 @@ describe("Path utils", () => {
     it("Creates a valid target path from a relative source path", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "other/test.mp4",
-        ".enc.mp4"
+        ".enc.mp4",
       );
-      expect(targetPath).toEqual("other/test.enc.mp4");
+      assert.equal(targetPath, "other/test.enc.mp4");
     });
 
     it("Creates a valid target path from an absolute source path", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "/some/absolute/test.mp4",
-        ".enc.mp4"
+        ".enc.mp4",
       );
-      expect(targetPath).toEqual("/some/absolute/test.enc.mp4");
+      assert.equal(targetPath, "/some/absolute/test.enc.mp4");
     });
 
     it("Creates a valid target path from a file name", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "test.mp4",
-        ".enc.mp4"
+        ".enc.mp4",
       );
-      expect(targetPath).toEqual("test.enc.mp4");
+      assert.equal(targetPath, "test.enc.mp4");
     });
 
     it("Creates a valid target path from a very long file name", () => {
       const targetPath = pathUtils.getTargetPathFromSourcePath(
         "test.mp4".repeat(200),
-        ".enc.mp4"
+        ".enc.mp4",
       );
-      expect(path.basename(targetPath).length).toBeLessThanOrEqual(255);
+      assert.ok(path.basename(targetPath).length <= 255);
     });
   });
 
@@ -73,27 +75,27 @@ describe("Path utils", () => {
     it("Creates a valid temporary path from a relative source path", () => {
       const workInProgressPath =
         pathUtils.getWorkInProgressPathFromTargetPath("other/test.mp4");
-      expect(workInProgressPath).toEqual("other/.test.mp4.tmp");
+      assert.equal(workInProgressPath, "other/.test.mp4.tmp");
     });
 
     it("Creates a valid work in progress path from an absolute source path", () => {
       const workInProgressPath = pathUtils.getWorkInProgressPathFromTargetPath(
-        "/some/absolute/test.mp4"
+        "/some/absolute/test.mp4",
       );
-      expect(workInProgressPath).toEqual("/some/absolute/.test.mp4.tmp");
+      assert.equal(workInProgressPath, "/some/absolute/.test.mp4.tmp");
     });
 
     it("Creates a valid work in progress path from a file name", () => {
       const workInProgressPath =
         pathUtils.getWorkInProgressPathFromTargetPath("test.mp4");
-      expect(workInProgressPath).toEqual(".test.mp4.tmp");
+      assert.equal(workInProgressPath, ".test.mp4.tmp");
     });
 
     it("Creates a valid work in progress path with limited length for long file names", () => {
       const workInProgressPath = pathUtils.getWorkInProgressPathFromTargetPath(
-        "test.mp4".repeat(200)
+        "test.mp4".repeat(200),
       );
-      expect(workInProgressPath.length).toBeLessThanOrEqual(255);
+      assert.ok(workInProgressPath.length <= 255);
     });
   });
 });
